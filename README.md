@@ -33,13 +33,51 @@
 - **Use when:** Need to execute tests on ixia-c/KENG
 - **Status:** ✅ Production-Ready
 
+#### 🚢 Skill #4: ixia-c-deployment
+**Deploy and configure Ixia-c containerized traffic generator**
+- Docker Compose: Multi-container setup (controller + traffic engines + protocol engine)
+- Containerlab: Single-container deployment (ixia-c-one)
+- Infrastructure provisioning and verification
+- **Use when:** Setting up Ixia-c infrastructure before running tests
+- **Status:** ✅ Production-Ready
+
 ---
 
 ## Workflow Examples
 
-### Example 1: Migrate IxNetwork → Execute on KENG
+### Example 1: Deploy Ixia-c → Generate & Execute OTG Test
 
 ```
+Step 0: Deploy Ixia-c infrastructure
+  User: "Deploy Ixia-c with Docker Compose"
+  → /ixia-c-deployment (Method 1)
+  → docker compose up -d
+  → Infrastructure ready at localhost:8443
+
+Step 1: Generate OTG config
+  User: "Create BGP test with 2 ports, AS 101 and AS 102"
+  → /otg-config-generator
+  → bgp_config.json
+
+Step 2: Generate test script
+  User: "Generate Snappi script from bgp_config.json"
+  → /snappi-script-generator
+  → test_bgp.py
+
+Step 3: Run test on Ixia-c
+  python test_bgp.py
+  → Test Results + JSON Report
+```
+
+### Example 2: Migrate IxNetwork → Execute on KENG
+
+```
+Step 0: Deploy Ixia-c with Containerlab
+  User: "Deploy Ixia-c with Containerlab"
+  → /ixia-c-deployment (Method 2)
+  → sudo clab deploy -t topology.clab.yml
+  → Ixia-c ready at 172.20.20.10:8443
+
 Step 1: Convert IxNetwork config
   User: "Convert this IxNetwork RestPy BGP test"
   → /ixnetwork-to-keng-converter
@@ -50,12 +88,12 @@ Step 2: Generate test script
   → /snappi-script-generator
   → test_bgp.py
 
-Step 3: Run on KENG
+Step 3: Run test on Ixia-c
   python test_bgp.py
   → Test Results + JSON Report
 ```
 
-### Example 2: Create OTG Config from Scratch → Execute
+### Example 3: Create OTG Config from Scratch → Execute
 
 ```
 Step 1: Generate OTG config
@@ -103,9 +141,14 @@ kengotg/
     │   ├── SKILL.md
     │   └── README.md
     │
-    └── snappi-script-generator/           Skill #3
-        ├── SKILL.md
-        └── README.md
+    ├── snappi-script-generator/           Skill #3
+    │   ├── SKILL.md
+    │   ├── README.md
+    │   └── references/                    Protocol examples, assertions, GitHub snippets
+    │
+    └── ixia-c-deployment/                 Skill #4
+        ├── SKILL.md                       Docker Compose, Containerlab, K8s options
+        └── README.md                      (optional)
 ```
 
 ---
@@ -191,20 +234,50 @@ python test_bgp_keng.py
 
 ---
 
+### 4️⃣ ixia-c-deployment
+
+**When:** You need to set up Ixia-c infrastructure before running tests
+
+```bash
+/ixia-c-deployment
+
+User: "Deploy Ixia-c with Docker Compose for a lab test"
+
+Output: docker-compose.yml + deployment instructions
+```
+
+**Then deploy:**
+```bash
+docker compose up -d
+# Ixia-c available at https://localhost:8443
+```
+
+**Features:**
+- Docker Compose (multi-container: controller + engines)
+- Containerlab (single-container: ixia-c-one)
+- Kubernetes Operator (for cloud deployments)
+- Health checks & verification scripts
+- Troubleshooting guides
+
+---
+
 ## Key Capabilities
 
-| Capability | ixnetwork-to-keng-converter | otg-config-generator | snappi-script-generator |
-|---|---|---|---|
-| **BGP** | ✅ Convert | ✅ Generate | ✅ Execute |
-| **Ethernet/IPv4** | ✅ Convert | ✅ Generate | ✅ Execute |
-| **VLAN** | ✅ Convert | ✅ Generate | ✅ Execute |
-| **ISIS** | ❌ Convert | ✅ Generate | ✅ Execute |
-| **LACP** | ❌ Convert | ✅ Generate | ✅ Execute |
-| **LLDP** | ❌ Convert | ✅ Generate | ✅ Execute |
-| **Traffic Flows** | ✅ Convert | ✅ Generate | ✅ Execute |
-| **Feasibility Check** | ✅ Analysis | N/A | N/A |
-| **Conversion Report** | ✅ Detailed | N/A | N/A |
-| **Test Execution** | N/A | N/A | ✅ Full automation |
+| Capability | ixnetwork-to-keng-converter | otg-config-generator | snappi-script-generator | ixia-c-deployment |
+|---|---|---|---|---|
+| **BGP** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **Ethernet/IPv4** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **VLAN** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **ISIS** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **LACP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **LLDP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **Traffic Flows** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
+| **Feasibility Check** | ✅ Analysis | N/A | N/A | N/A |
+| **Conversion Report** | ✅ Detailed | N/A | N/A | N/A |
+| **Test Execution** | N/A | N/A | ✅ Full automation | N/A |
+| **Infrastructure Deploy** | N/A | N/A | N/A | ✅ Docker Compose / Containerlab |
+| **Health Verification** | N/A | N/A | N/A | ✅ API checks |
+| **Troubleshooting** | N/A | N/A | N/A | ✅ Guides |
 
 ---
 
@@ -359,8 +432,9 @@ tar -czf kengotg-skills.tar.gz /path/to/kengotg
 |-------|---------|--------|---|
 | ixnetwork-to-keng-converter | 1.0 | ✅ Production-Ready | 2026-03-17 |
 | otg-config-generator | 1.0 | ✅ Production-Ready | 2026-03-17 |
-| snappi-script-generator | 1.0 | ✅ Production-Ready | 2026-03-17 |
+| snappi-script-generator | 1.1 | ✅ Production-Ready | 2026-03-17 |
+| ixia-c-deployment | 1.0 | ✅ Production-Ready | 2026-03-17 |
 
 ---
 
-**Ready to use. Share with your organization.**
+**Complete OTG/KENG testing toolkit. Ready to use. Share with your organization.**

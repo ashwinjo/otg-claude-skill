@@ -75,6 +75,29 @@ This directory contains Claude AI skills for IxNetwork and OTG/KENG configuratio
 
 ---
 
+### 4. **ixia-c-deployment**
+
+**Purpose:** Deploy and configure Ixia-c containerized traffic generator for OTG testing
+
+**When to use:**
+- Setting up Ixia-c infrastructure before running tests
+- Deploying with Docker Compose (simple labs)
+- Deploying with Containerlab (network topology labs)
+
+**Capabilities:**
+- ✅ Docker Compose multi-container setup (controller + traffic engines + protocol engine)
+- ✅ Containerlab single-container (ixia-c-one) deployment
+- ✅ Health checks and verification
+- ✅ Integration with snappi-script-generator
+- ✅ Troubleshooting guides
+
+**Deployment Options:** Docker Compose, Containerlab, Kubernetes Operator, OpenConfig KNE
+
+**Location:** `./ixia-c-deployment/`
+**Entry Point:** `/ixia-c-deployment`
+
+---
+
 ## Workflow Example
 
 ```
@@ -203,7 +226,8 @@ skill-name/
 |-------|---------|--------|---|
 | ixnetwork-to-keng-converter | 1.0 | ✅ Production-Ready | 2026-03-17 |
 | otg-config-generator | 1.0 | ✅ Production-Ready | 2026-03-17 |
-| snappi-script-generator | 1.0 | ✅ Production-Ready | 2026-03-17 |
+| snappi-script-generator | 1.1 | ✅ Production-Ready | 2026-03-17 |
+| ixia-c-deployment | 1.0 | ✅ Production-Ready | 2026-03-17 |
 
 ---
 

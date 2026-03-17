@@ -69,7 +69,33 @@ test_config:
 - `test_config.metrics_interval_seconds` — Metrics polling interval
 - `test_config.stop_on_failure` — Stop test if assertion fails
 
-### Step 2: Specify Assertions (Optional, Configurable)
+### Step 2: Specify Traffic Rate
+
+Traffic flows can specify rate in multiple formats:
+
+```python
+# Packets per second
+flow.rate.pps = 1000
+
+# Percentage of line rate (0-100%)
+flow.rate.percentage = 50
+
+# Bytes per second
+flow.rate.bps = 1000000
+
+# Fixed number of packets (for test termination)
+flow.duration.fixed_packets.packets = 1000000
+
+# Fixed test duration
+flow.duration.fixed_seconds.seconds = 60
+
+# Continuous traffic
+flow.duration.continuous.gap = 12  # Inter-packet gap in bytes
+```
+
+**Rate choice:** Use `pps` for packet-level control, `percentage` for line-rate ratios, `bps` for throughput-based testing.
+
+### Step 3: Specify Assertions (Optional, Configurable)
 
 Assertions are configurable and can be passed in the generation request. Examples:
 
@@ -102,6 +128,9 @@ Assertions are configurable and can be passed in the generation request. Example
 - `packet_loss` — Maximum acceptable packet loss percentage
 - `flow_frames_transmitted` — Minimum frames expected on a flow
 - `flow_frames_received` — Minimum frames expected received on a flow
+- `port_frames_transmitted` — Minimum frames on a specific port
+- `port_link_status` — Port link state (up/down)
+- `bgp_route_count` — Number of routes learned via BGP
 - `latency_avg` — Maximum average latency (ms)
 
 ### Step 3: Generate the Script
@@ -532,20 +561,49 @@ Assertions: Check frame count
 Duration: 30 seconds
 ```
 
+### VLAN-Tagged Traffic Test
+```
+Config: 2 ports with VLAN 100 interface, 1 flow with VLAN headers
+Infrastructure: Lab with controller + 2 ports
+Assertions: Port RX frames > 100000, packet loss < 0.01%
+Duration: 60 seconds
+Packet structure: Ethernet → VLAN(id=100) → IPv4 → UDP
+```
+
 ### BGP Convergence Test
 ```
 Config: 2 ports with BGP devices and routes
 Infrastructure: Lab with controller + 2 ports
-Assertions: BGP sessions up, packet loss < 0.01%
+Assertions: BGP sessions up (2), packet loss < 0.01%
 Duration: 60 seconds, metrics every 5s
+Protocol wait: 30 seconds for BGP convergence
+```
+
+### Multi-Protocol Convergence Test (BGP + ISIS)
+```
+Config: 2 ports with BGP and ISIS devices
+Infrastructure: Lab with controller + 2 ports + protocol engine
+Assertions: BGP sessions up (2), ISIS adjacencies (2)
+Duration: 90 seconds (30s for each protocol to converge)
+Setup: Start protocols with 40s wait, then traffic
+Protocol wait: Use composite wait for multi-protocol (BGP 30s + ISIS 40s)
 ```
 
 ### Multi-Flow Streaming Test
 ```
 Config: 2 ports with 10 bidirectional flows
 Infrastructure: High-speed test setup
-Assertions: All flows transmitting, latency < 10ms
+Assertions: All flows transmitting, latency < 10ms, no packet loss
 Duration: 120 seconds, metrics every 2s
+```
+
+### BGP Route Aggregation Test
+```
+Config: 2 ports with BGP peers advertising multiple route ranges
+Infrastructure: Lab with controller + 2 ports
+Assertions: BGP route count > 500, convergence time < 60s
+Duration: 120 seconds
+Flow: Traffic to specific route (e.g., 10.0.0.0/24)
 ```
 
 ## Error Handling
@@ -565,6 +623,21 @@ Once comfortable with the interactive prompts, evolution to:
 - **Continuous monitoring** (monitor and alert on failures)
 - **Parallel test runs** (execute multiple tests)
 - **CI/CD integration** (GitHub Actions, Jenkins, etc.)
+
+---
+
+## Reference Documentation
+
+For detailed Snappi patterns and advanced examples, see:
+
+- **`references/protocol_examples.md`** — BGP, ISIS, LACP, VLAN, QinQ, route aggregation, communities, traffic rate patterns
+- **`references/assertion_patterns.md`** — BGP convergence, ISIS adjacencies, packet loss, port metrics, latency, multi-protocol assertions
+- **`references/github_snippets.md`** — Official Snappi repo code examples (initialization, serialization, metrics, traffic control, capture)
+
+**Official Resources:**
+- [Snappi SDK](https://github.com/open-traffic-generator/snappi) — Python client library
+- [OTG Models](https://github.com/open-traffic-generator/models) — API schema and specification
+- [OTG Examples](https://github.com/open-traffic-generator/otg-examples) — Complete lab examples with Containerlab
 
 ---
 
