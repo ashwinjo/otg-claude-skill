@@ -1,0 +1,90 @@
+{
+  "skill_name": "snappi-script-generator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate a Snappi test script for a simple port-to-port traffic test. OTG config has 2 ports (P1, P2) with 1 flow from P1 to P2. Infrastructure: controller at 10.0.0.1:8443, P1 maps to eth1, P2 maps to eth2. Test duration 30 seconds, metrics every 5 seconds. No assertions.",
+      "expected_output": "Standalone Python Snappi script with all necessary imports, API connection, config loading, traffic start/stop, metrics collection, and interactive prompts",
+      "files": [],
+      "assertions": [
+        "Output is valid Python code (no syntax errors)",
+        "Script imports snappi module",
+        "Script initializes API client with correct controller IP and port",
+        "Script loads OTG configuration",
+        "Script has start_traffic() and stop_traffic() functions",
+        "Script collects metrics with correct interval (5 seconds)",
+        "Script includes interactive prompt ('Press Enter to START TRAFFIC')",
+        "Script has error handling and retry logic with backoff",
+        "Script is standalone and immediately runnable (no external dependencies besides snappi)",
+        "Script has proper cleanup (stop traffic, stop protocols) in finally block",
+        "Script includes JSON report generation"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Generate a Snappi test script for BGP convergence testing. OTG config: 2 ports with BGP devices (AS 101 and AS 102). Infrastructure: controller 192.168.1.100:8443, P1->eth1, P2->eth2. Test duration 60 seconds, metrics every 5 seconds. Assertions: BGP sessions equals 2, packet loss less than 0.01%.",
+      "expected_output": "Python Snappi script with BGP protocol startup, assertion validation, and metrics collection for convergence testing",
+      "files": [],
+      "assertions": [
+        "Output is valid Python code",
+        "Script includes protocol startup logic (start_protocols function)",
+        "Script waits for protocol convergence before starting traffic",
+        "Script includes assertion validation with correct operators",
+        "Script validates BGP session count assertion",
+        "Script validates packet loss assertion",
+        "Script displays assertion results with PASS/FAIL status",
+        "Script logs detailed metrics including tx_frames, rx_frames, loss_pct",
+        "Script handles missing protocols gracefully",
+        "Test duration is 60 seconds",
+        "Metrics interval is 5 seconds"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Generate a Snappi test script with custom infrastructure YAML inline. OTG config for 2-port bidirectional flows. Infrastructure: controller 10.20.30.40 port 443 http protocol, ports P1/P2 mapped to 1/1/1 and 1/1/2. Test 45 seconds, metrics every 3 seconds. Assertions: tx frames > 50000, rx frames > 50000.",
+      "expected_output": "Python script that parses inline infrastructure config and generates appropriate Snappi code",
+      "files": [],
+      "assertions": [
+        "Script uses correct controller protocol (http not https)",
+        "Script uses correct port locations (1/1/1, 1/1/2 format)",
+        "Script uses correct test duration (45 seconds)",
+        "Script uses correct metrics interval (3 seconds)",
+        "Script includes flow frame count assertions",
+        "Script validates both tx and rx frames separately",
+        "Script generates valid Python with all necessary config embedded"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Generate a Snappi test script with multiple flows and assertions. OTG config has 4 flows (flow1, flow2, flow3, flow4) between 2 ports. Infrastructure: standard setup. Assertions for each flow: validate tx/rx frames, check latency < 10ms. Include error handling and retry logic.",
+      "expected_output": "Snappi script handling multiple flows with per-flow assertions and robust error handling",
+      "files": [],
+      "assertions": [
+        "Script handles multiple flows correctly",
+        "Script collects metrics for all flows",
+        "Script includes latency assertions",
+        "Script validates assertions per-flow",
+        "Script has exponential backoff retry logic",
+        "Script catches and handles exceptions gracefully",
+        "Script displays detailed error messages",
+        "Script cleans up resources even on failure"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Generate a Snappi test script for a complex test scenario: BGP with ISIS backup, multiple traffic flows, capture configuration, and dynamic rate changes. Infrastructure includes controller at 10.0.0.1, 3 ports. Duration 120 seconds.",
+      "expected_output": "Comprehensive Snappi script for advanced traffic testing with protocol redundancy and traffic control",
+      "files": [],
+      "assertions": [
+        "Script handles multiple protocols (BGP and ISIS)",
+        "Script includes port capture configuration if specified",
+        "Script is extensible for future enhancements",
+        "Script includes comprehensive logging",
+        "Script has clear section separation (Config, API Functions, Main Execution)",
+        "Script includes docstrings for all functions",
+        "Script supports 120-second duration",
+        "Script structure allows for future additions without major refactoring"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "ports": [
+    {
+      "name": "P1",
+      "location": "P1"
+    },
+    {
+      "name": "P2",
+      "location": "P2"
+    }
+  ],
+  "devices": [
+    {
+      "name": "device_P1",
+      "container_name": "device_P1",
+      "device_eth": [
+        {
+          "name": "eth1",
+          "connection": {
+            "choice": "port_name",
+            "port_name": "P1"
+          },
+          "mac": "00:11:22:33:44:01",
+          "ipv4_addresses": [
+            {
+              "name": "ipv4_1",
+              "address": "1.1.1.4",
+              "prefix": 32,
+              "gateway": "1.1.1.1"
+            }
+          ]
+        }
+      ],
+      "bgp": [
+        {
+          "name": "bgp_as101",
+          "router_id": "1.1.1.4",
+          "asn": 101,
+          "ipv4_unicast": {
+            "sendunicast": true
+          },
+          "neighbors": [
+            {
+              "name": "bgp_neighbor_as102",
+              "peer_address": "1.1.1.1",
+              "as_number": 102
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "device_P2",
+      "container_name": "device_P2",
+      "device_eth": [
+        {
+          "name": "eth1",
+          "connection": {
+            "choice": "port_name",
+            "port_name": "P2"
+          },
+          "mac": "00:11:22:33:44:02",
+          "ipv4_addresses": [
+            {
+              "name": "ipv4_1",
+              "address": "1.1.1.1",
+              "prefix": 32,
+              "gateway": "1.1.1.4"
+            }
+          ]
+        }
+      ],
+      "bgp": [
+        {
+          "name": "bgp_as102",
+          "router_id": "1.1.1.1",
+          "asn": 102,
+          "ipv4_unicast": {
+            "sendunicast": true
+          },
+          "neighbors": [
+            {
+              "name": "bgp_neighbor_as101",
+              "peer_address": "1.1.1.4",
+              "as_number": 101
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow_p1_to_p2",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "P1",
+          "rx_names": ["P2"]
+        }
+      },
+      "packet": [
+        {
+          "name": "eth",
+          "header": {
+            "choice": "ethernet",
+            "ethernet": {}
+          }
+        },
+        {
+          "name": "ipv4",
+          "header": {
+            "choice": "ipv4",
+            "ipv4": {}
+          }
+        }
+      ],
+      "rate": {
+        "choice": "pps",
+        "pps": 1488095
+      },
+      "duration": {
+        "choice": "continuous"
+      }
+    },
+    {
+      "name": "flow_p2_to_p1",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "P2",
+          "rx_names": ["P1"]
+        }
+      },
+      "packet": [
+        {
+          "name": "eth",
+          "header": {
+            "choice": "ethernet",
+            "ethernet": {}
+          }
+        },
+        {
+          "name": "ipv4",
+          "header": {
+            "choice": "ipv4",
+            "ipv4": {}
+          }
+        }
+      ],
+      "rate": {
+        "choice": "pps",
+        "pps": 1488095
+      },
+      "duration": {
+        "choice": "continuous"
+      }
+    }
+  ]
+}
