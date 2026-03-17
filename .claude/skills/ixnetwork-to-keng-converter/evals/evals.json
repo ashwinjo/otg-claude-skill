@@ -1,0 +1,78 @@
+{
+  "skill_name": "ixnetwork-to-keng-converter",
+  "evals": [
+    {
+      "id": 1,
+      "name": "BGP RestPy Code Conversion",
+      "prompt": "Convert the following IxNetwork RestPy code to OTG configuration. This is a 2-port BGP test with bidirectional traffic. Use the code to generate otg_config.json and conversion_report.md.",
+      "input_type": "python_code",
+      "input_file": "eval1_bgp_restpy.py",
+      "expected_output": {
+        "format": "otg_json_and_report",
+        "key_elements": [
+          "2 ports (P1, P2)",
+          "2 devices (device_P1, device_P2)",
+          "BGP AS 101 and AS 102",
+          "IPv4 addresses 1.1.1.4 and 1.1.1.1",
+          "2 bidirectional flows",
+          "Conversion report mentions BGP peering works",
+          "Report mentions multiplier=2 should be expanded at runtime"
+        ]
+      },
+      "files": ["eval1_bgp_restpy.py"]
+    },
+    {
+      "id": 2,
+      "name": "IxNetwork JSON Config Conversion",
+      "prompt": "Convert this IxNetwork JSON configuration (endpoint-based model) to OTG format. Generate otg_config.json and conversion_report.md. The config describes 2 endpoints with BGP setup.",
+      "input_type": "json_config",
+      "input_file": "eval2_ixnetwork_json.json",
+      "expected_output": {
+        "format": "otg_json_and_report",
+        "key_elements": [
+          "Ports extracted from endpoint chassis/card/port mapping",
+          "Devices created from endpoints",
+          "BGP configuration with AS numbers 101, 102",
+          "IPv4 addressing from endpoint config",
+          "Report shows successful conversion"
+        ]
+      },
+      "files": ["eval2_ixnetwork_json.json"]
+    },
+    {
+      "id": 3,
+      "name": "Non-Convertible OSPF Config",
+      "prompt": "Attempt to convert this IxNetwork RestPy config that uses OSPF routing. The skill should detect OSPF is unsupported and provide a feasibility check report explaining why conversion cannot proceed.",
+      "input_type": "python_code",
+      "input_file": "eval3_ospf_restpy.py",
+      "expected_output": {
+        "format": "conversion_report_only",
+        "key_elements": [
+          "Report clearly states conversion is NOT POSSIBLE",
+          "Identifies OSPF as blocking unsupported feature",
+          "Severity marked as CRITICAL",
+          "Suggests alternative: use BGP instead",
+          "No otg_config.json generated"
+        ]
+      },
+      "files": ["eval3_ospf_restpy.py"]
+    },
+    {
+      "id": 4,
+      "name": "BGP with VLAN (Partially Supported)",
+      "prompt": "Convert this IxNetwork config with BGP and VLAN configuration. The skill should handle VLANs (supported) and produce valid output.",
+      "input_type": "python_code",
+      "input_file": "eval4_bgp_vlan.py",
+      "expected_output": {
+        "format": "otg_json_and_report",
+        "key_elements": [
+          "Devices configured with VLAN",
+          "BGP peering within VLAN context",
+          "Report mentions VLAN conversion applied",
+          "All OTG schema valid"
+        ]
+      },
+      "files": ["eval4_bgp_vlan.py"]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "tgenConfig": {
+    "apiServerIp": "10.36.231.231",
+    "apiServerUsername": "admin",
+    "apiServerPassword": "admin",
+    "endpoint1": {
+      "ixia-chassis-ip": "10.36.231.231",
+      "ixia-chassis-card": "9",
+      "ixia-chassis-port": "2",
+      "ixia-chassis-port-name": "Port_1",
+      "ipv4": {
+        "addressStartValue": "1.1.1.4",
+        "addressIncrement": "0.0.0.1",
+        "gatewayStartValue": "1.1.1.1",
+        "prefix": 32
+      },
+      "bgp": {
+        "name": "BGPPeer1",
+        "localas2value": 101,
+        "increment": "1.1.1.1",
+        "step_value": "0.0.0.1"
+      },
+      "networkpools": {
+        "name": "BGP-Routes1",
+        "multiplier": 100,
+        "numberOfIpv4PrefixPools": 1,
+        "start_value": "10.10.0.1",
+        "step_value": "0.0.0.1",
+        "prefix_length": 32
+      }
+    },
+    "endpoint2": {
+      "ixia-chassis-ip": "10.36.231.231",
+      "ixia-chassis-card": "9",
+      "ixia-chassis-port": "1",
+      "ixia-chassis-port-name": "Port_2",
+      "ipv4": {
+        "addressStartValue": "1.1.1.1",
+        "addressIncrement": "0.0.0.1",
+        "gatewayStartValue": "1.1.1.4",
+        "prefix": 32
+      },
+      "bgp": {
+        "name": "BGPPeer2",
+        "localas2value": 102,
+        "increment": "1.1.1.4",
+        "step_value": "0.0.0.1"
+      },
+      "networkpools": {
+        "name": "BGP-Routes2",
+        "multiplier": 100,
+        "numberOfIpv4PrefixPools": 1,
+        "start_value": "20.10.0.1",
+        "step_value": "0.0.0.1",
+        "prefix_length": 32
+      }
+    },
+    "traffic": [
+      {
+        "name": "BGP Traffic",
+        "BiDirectional": true,
+        "TrafficType": "ipv4",
+        "TrackingType": ["sourceDestEndpointPair0"],
+        "frameRate": 13888889
+      }
+    ]
+  }
+}
