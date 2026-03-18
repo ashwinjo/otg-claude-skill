@@ -42,10 +42,14 @@ This skill converts IxNetwork test configurations to vendor-neutral OTG/KENG for
 
 **Unsupported (blockers):**
 - OSPF, ISIS, RIP, other routing protocols
-- LACP, LLDP
+- LACP, LLDP (cannot be *converted* from IxNetwork, but can be *added natively* in OTG — see note below)
 - Advanced traffic tracking (multicast, QoS, deep packet inspection)
 - Stateful protocols (TCP, complex application layer)
 - Device replication via multiplier (must be flattened into explicit device list)
+
+> **Note on LACP/LLDP/ISIS:** These protocols cannot be auto-converted from IxNetwork format, but OTG *does* support them natively. If your IxNetwork config includes BGP + LLDP, this skill converts the BGP portion and flags LLDP as unsupported. You can then use `/otg-config-generator` to add LLDP or ISIS configuration to the converted OTG config. Example workflow:
+> 1. `/ixnetwork-to-keng-converter` → converts BGP, flags LLDP as skipped
+> 2. `/otg-config-generator` → "Add LLDP to this OTG config: [paste otg_config.json]"
 
 ---
 
@@ -432,6 +436,15 @@ for i in range(100):
 ---
 
 ## Next Steps After Conversion
+
+### 0. Deploy Ixia-c Infrastructure (if not already running)
+
+Before deploying the config, ensure ixia-c is running. Use the `/ixia-c-deployment` skill:
+```
+/ixia-c-deployment
+→ Docker Compose (simple b2b lab) or Containerlab (topology lab)
+→ Controller available at https://localhost:8443
+```
 
 ### 1. Validate the OTG Config
 

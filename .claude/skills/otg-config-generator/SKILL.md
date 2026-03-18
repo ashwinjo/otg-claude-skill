@@ -11,7 +11,7 @@ description: |
   - Set up test ports, LAGs, VLANs, IPv4/IPv6 addressing, and traffic flows
 
   The skill translates user intent into structured, ready-to-deploy OTG JSON configurations.
-compatibility: Requires OpenAPI spec at /Users/ashwin.joshi/kengotg/openapi.yaml
+compatibility: References openapi.yaml at the project root for schema validation (optional)
 ---
 
 # OTG Configuration Generator
@@ -133,6 +133,68 @@ Use these patterns from the OpenAPI spec:
 }
 ```
 
+**BGP Route Advertisement** — Advertising prefixes to a peer:
+```json
+{
+  "name": "bgp_neighbor_1",
+  "peer_address": "10.0.0.254",
+  "as_number": 65002,
+  "v4_routes": [
+    {
+      "name": "routes_v4",
+      "addresses": [
+        {"address": "10.0.0.0", "prefix": 24, "count": 100, "step": 1}
+      ]
+    }
+  ]
+}
+```
+`count` = number of prefixes, `step` = increment between prefixes (1 = 10.0.0.0/24, 10.0.1.0/24, ..., 10.0.99.0/24).
+
+**IPv6 Addressing** — Adding IPv6 to an Ethernet interface:
+```json
+{
+  "name": "eth1",
+  "connection": {"choice": "port_name", "port_name": "port1"},
+  "mac": "00:11:22:33:44:55",
+  "ipv4_addresses": [{"name": "ipv4_1", "address": "10.0.0.1", "prefix": 24, "gateway": "10.0.0.254"}],
+  "ipv6_addresses": [{"name": "ipv6_1", "address": "2001:db8::1", "prefix": 64, "gateway": "2001:db8::fe"}]
+}
+```
+
+**BGP IPv6 Peer** — For dual-stack or IPv6-only BGP:
+```json
+{
+  "bgp": {
+    "router_id": "10.0.0.1",
+    "ipv6_interfaces": [
+      {
+        "ipv6_name": "ipv6_1",
+        "peers": [
+          {
+            "name": "bgp_v6_peer_1",
+            "peer_address": "2001:db8::fe",
+            "as_type": "ebgp",
+            "as_number": 65002,
+            "v6_routes": [
+              {
+                "name": "routes_v6",
+                "addresses": [
+                  {"address": "2001:db8:100::", "prefix": 48, "count": 10, "step": 1}
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Multi-hop eBGP** — When peers are not directly connected (e.g., separated by a router):
+Set `as_type` to `"ebgp"`. For multi-hop scenarios the peer's IP is not the directly connected address — ensure the gateway and routing allow reachability to the peer. Note that `as_type` is **required** on every peer: use `"ebgp"` for external peers (different AS), `"ibgp"` for internal peers (same AS).
+
 **LACP LAG** — For port aggregation:
 ```json
 {
@@ -184,7 +246,7 @@ Output a complete `Config` object with these top-level arrays:
 }
 ```
 
-Return **only the JSON** — no commentary, no explanations. The Agent will use this directly.
+Return the JSON configuration followed by a brief summary: number of ports, devices, protocols configured (e.g., BGP, ISIS, LACP), and flows. This helps the engineer quickly confirm the output matches their intent before deploying.
 
 ## Common Patterns
 
@@ -202,7 +264,19 @@ Return **only the JSON** — no commentary, no explanations. The Agent will use 
 - Device starts LACP on LAG1
 
 ### VLAN Tagging
-Add `ipv4_addresses` with VLAN ID in device Ethernet config
+VLANs are configured in `ethernets[].vlans[]` — a separate array inside the Ethernet interface, not inside `ipv4_addresses`. The IPv4 address sits on top of the VLAN-tagged interface.
+
+```json
+{
+  "name": "eth1",
+  "connection": {"choice": "port_name", "port_name": "port1"},
+  "mac": "00:11:22:33:44:55",
+  "vlans": [{"name": "vlan100", "id": 100, "priority": 0}],
+  "ipv4_addresses": [{"name": "ipv4_1", "address": "10.100.0.1", "prefix": 24, "gateway": "10.100.0.254"}]
+}
+```
+
+For QinQ (double-tagged), add two entries to `vlans[]` — outer VLAN first, then inner.
 
 ### Multi-Device Topology
 Chain devices with interconnected Ethernet interfaces:

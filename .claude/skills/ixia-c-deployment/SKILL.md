@@ -91,7 +91,9 @@ curl -sk https://<node-ip>:8443/config
 
 ## Step 5: Infrastructure YAML (for snappi-script-generator)
 
-Port `location` values must match the `location` in the controller's `location_map`:
+Port `location` values must match the `location` in the controller's `location_map`.
+
+> **TLS note:** Ixia-c uses self-signed certificates by default. When connecting via snappi-script-generator, generated scripts must pass `verify=False` to `snappi.api()` (this is done automatically by the snappi-script-generator skill). For production deployments, replace with a CA bundle path.
 
 | Deployment type | Port location format |
 |-----------------|----------------------|

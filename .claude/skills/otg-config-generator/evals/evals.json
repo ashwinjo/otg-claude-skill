@@ -84,6 +84,38 @@
         "Flow packets include VLAN headers with appropriate IDs",
         "All object names are globally unique"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "Create a BGP test with route advertisement. Two devices on port1 and port2. Device1: IP 10.0.0.1/24, BGP AS 65001, peer 10.0.0.2 AS 65002, advertise 100 routes starting 192.168.0.0/24. Device2: IP 10.0.0.2/24, BGP AS 65002, peer 10.0.0.1 AS 65001, advertise 50 routes starting 172.16.0.0/24. Add bidirectional traffic flows.",
+      "expected_output": "Valid OTG Config JSON with BGP route advertisement on both devices",
+      "files": [],
+      "assertions": [
+        "Output is valid JSON",
+        "Config has 2 ports and 2 devices",
+        "Device1 BGP peer has v4_routes configured",
+        "Device1 routes start at 192.168.0.0/24 with count 100",
+        "Device2 BGP peer has v4_routes configured",
+        "Device2 routes start at 172.16.0.0/24 with count 50",
+        "Config has 2 bidirectional flows",
+        "All object names are globally unique"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Create a dual-stack BGP test. Two devices on port1 and port2. Device1: IPv4 10.0.0.1/24, IPv6 2001:db8::1/64, BGP AS 65001 with both IPv4 peer (10.0.0.2) and IPv6 peer (2001:db8::2). Device2: IPv4 10.0.0.2/24, IPv6 2001:db8::2/64, BGP AS 65002 with both IPv4 peer (10.0.0.1) and IPv6 peer (2001:db8::1). Add one IPv4 and one IPv6 traffic flow.",
+      "expected_output": "Valid OTG Config JSON with dual-stack BGP (IPv4 + IPv6) on both devices",
+      "files": [],
+      "assertions": [
+        "Output is valid JSON",
+        "Config has 2 ports and 2 devices",
+        "Both devices have ipv4_addresses configured",
+        "Both devices have ipv6_addresses configured",
+        "Both devices have BGP IPv4 peers configured",
+        "Both devices have BGP IPv6 peers configured",
+        "Config has 2 flows (one IPv4, one IPv6)",
+        "All object names are globally unique"
+      ]
     }
   ]
 }

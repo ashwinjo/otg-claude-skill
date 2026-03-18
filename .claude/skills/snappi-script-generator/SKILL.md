@@ -190,7 +190,9 @@ def connect_api(location, max_retries=3, backoff_factor=2):
     for attempt in range(max_retries):
         try:
             print(f"[Attempt {attempt+1}/{max_retries}] Connecting to {location}...")
-            api = snappi.api(location=location)
+            # verify=False accepts self-signed certs (default in ixia-c)
+            # For production, replace with: verify="/path/to/ca-bundle.crt"
+            api = snappi.api(location=location, verify=False)
             print("✓ Connected successfully")
             return api
         except Exception as e:
@@ -218,9 +220,27 @@ def load_config(api, config_json):
         print(f"✗ Failed to load configuration: {e}")
         raise
 
-def start_protocols(api, config, wait_time=30):
+def wait_for_bgp_convergence(api, expected_sessions, timeout=60, poll_interval=5):
     """
-    Start all protocols (BGP, ISIS, etc.)
+    Poll BGP session state until expected session count is reached or timeout expires.
+    Preferred over a fixed sleep — returns as soon as BGP is up.
+    """
+    elapsed = 0
+    while elapsed < timeout:
+        count = get_bgp_session_count(api)
+        print(f"  BGP sessions up: {count}/{expected_sessions} ({elapsed}s elapsed)", end='\r')
+        if count >= expected_sessions:
+            print(f"\n✓ BGP converged ({count} sessions up in {elapsed}s)")
+            return True
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+    print(f"\n✗ BGP convergence timeout ({timeout}s): only {get_bgp_session_count(api)}/{expected_sessions} sessions up")
+    return False
+
+def start_protocols(api, config, wait_time=30, expected_bgp_sessions=0):
+    """
+    Start all protocols (BGP, ISIS, etc.).
+    If expected_bgp_sessions > 0, polls for convergence instead of sleeping blindly.
     """
     print("\n[Step 2] Starting protocols...")
     try:
@@ -241,10 +261,14 @@ def start_protocols(api, config, wait_time=30):
         state.protocol.state = snappi.ControlState.Protocol.start
         api.set_control_state(state)
 
-        print(f"  Waiting {wait_time} seconds for protocol convergence...")
-        for i in range(wait_time, 0, -1):
-            print(f"    {i} seconds remaining...", end='\r')
-            time.sleep(1)
+        if expected_bgp_sessions > 0:
+            # Poll until BGP sessions are up (faster than a fixed sleep)
+            wait_for_bgp_convergence(api, expected_bgp_sessions, timeout=wait_time)
+        else:
+            print(f"  Waiting {wait_time} seconds for protocol convergence...")
+            for i in range(wait_time, 0, -1):
+                print(f"    {i} seconds remaining...", end='\r')
+                time.sleep(1)
 
         print("✓ Protocols started and converged")
     except Exception as e:
@@ -253,17 +277,19 @@ def start_protocols(api, config, wait_time=30):
 
 def get_bgp_session_count(api):
     """
-    Get current BGP session count
+    Get current BGP session count from live metrics
     """
     try:
         req = snappi.MetricsRequest()
-        req.device.state = snappi.MetricsRequest.DeviceMetricState.any
+        req.choice = req.DEVICE
         resp = api.get_metrics(req)
 
         bgp_up = 0
         for metric in resp.device_metrics:
-            if hasattr(metric, 'bgp_session') and metric.bgp_session:
-                bgp_up += len([s for s in metric.bgp_session if s.state == 'up'])
+            if hasattr(metric, 'bgp_session'):
+                for session in metric.bgp_session:
+                    if session.session_state == 'up':
+                        bgp_up += 1
         return bgp_up
     except:
         return 0
@@ -274,9 +300,9 @@ def start_traffic(api):
     """
     print("\n[Step 3] Starting traffic...")
     try:
-        state = snappi.TransmitState()
-        state.state = snappi.TransmitState.start
-        api.set_transmit_state(state)
+        control_state = snappi.ControlState()
+        control_state.traffic.flow_transmit.state = "start"
+        api.set_control_state(control_state)
         print("✓ Traffic started")
     except Exception as e:
         print(f"✗ Failed to start traffic: {e}")
@@ -333,9 +359,9 @@ def collect_metrics(api, flows, interval, duration):
         print(f"✗ Failed to collect metrics: {e}")
         raise
 
-def validate_assertions(metrics_data, assertions):
+def validate_assertions(api, metrics_data, assertions):
     """
-    Validate test assertions
+    Validate test assertions against live metrics and collected data
     """
     if not assertions:
         print("\n(No assertions to validate)")
@@ -353,7 +379,7 @@ def validate_assertions(metrics_data, assertions):
         actual = None
 
         if assertion_type == 'packet_loss':
-            # Calculate average packet loss
+            # Calculate average packet loss from collected metrics
             if metrics_data:
                 avg_loss = sum(m.get('loss_pct', 0) for m in metrics_data) / len(metrics_data)
                 actual = avg_loss
@@ -361,12 +387,19 @@ def validate_assertions(metrics_data, assertions):
                     passed = avg_loss < expected
 
         elif assertion_type == 'bgp_sessions':
-            # Check final BGP session count (would need live check)
-            passed = True  # Placeholder
+            # Check live BGP session count from controller
+            actual = get_bgp_session_count(api)
+            if operator == 'equals':
+                passed = actual == expected
+            elif operator == 'greater_than':
+                passed = actual > expected
+            elif operator == 'less_than':
+                passed = actual < expected
 
         elif assertion_type == 'flow_frames_transmitted':
             # Check if frames transmitted on flow
             if metrics_data and metrics_data[-1].get('tx_frames', 0) > expected:
+                actual = metrics_data[-1].get('tx_frames', 0)
                 passed = True
 
         status = "✓ PASS" if passed else "✗ FAIL"
@@ -383,9 +416,9 @@ def stop_traffic(api):
     """
     print("\n[Step 6] Stopping traffic...")
     try:
-        state = snappi.TransmitState()
-        state.state = snappi.TransmitState.stop
-        api.set_transmit_state(state)
+        control_state = snappi.ControlState()
+        control_state.traffic.flow_transmit.state = "stop"
+        api.set_control_state(control_state)
         print("✓ Traffic stopped")
     except Exception as e:
         print(f"✗ Failed to stop traffic: {e}")
@@ -444,7 +477,7 @@ def main():
         metrics_data = collect_metrics(api, config.flows, METRICS_INTERVAL, TEST_DURATION)
 
         # Step 6: Validate assertions
-        assertions_passed = validate_assertions(metrics_data, ASSERTIONS)
+        assertions_passed = validate_assertions(api, metrics_data, ASSERTIONS)
 
         if not assertions_passed and STOP_ON_FAILURE:
             print("\n✗ Test FAILED (assertions did not pass)")
@@ -489,8 +522,8 @@ if __name__ == "__main__":
 ## Step 4: Run the Script
 
 ```bash
-# Install dependencies
-pip install snappi
+# Install dependencies (pin to a tested version to avoid API changes between releases)
+pip install snappi==1.22.0   # replace with the version matching your ixia-c controller
 
 # Run the generated script
 python test_bgp.py
@@ -644,8 +677,8 @@ For detailed Snappi patterns and advanced examples, see:
 ## Example Input to Skill
 
 ```
-OTG Config: /Users/ashwin.joshi/kengotg/bgp_keng.json
-Infrastructure YAML: /Users/ashwin.joshi/kengotg/infrastructure.yaml
+OTG Config: bgp_keng.json   (or paste the JSON inline)
+Infrastructure YAML: infrastructure.yaml   (or provide inline)
 
 Assertions:
 - BGP sessions up: 2
