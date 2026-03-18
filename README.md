@@ -6,7 +6,7 @@
 
 ## Quick Start
 
-### 3 Production-Ready Skills
+### 5 Production-Ready Skills
 
 #### 🔄 Skill #1: ixnetwork-to-keng-converter
 **Migrate IxNetwork tests to vendor-neutral OTG format**
@@ -39,6 +39,16 @@
 - Containerlab: Single-container deployment (ixia-c-one)
 - Infrastructure provisioning and verification
 - **Use when:** Setting up Ixia-c infrastructure before running tests
+- **Status:** ✅ Production-Ready
+
+#### 📋 Skill #5: keng-licensing
+**Answer questions about OTG licensing costs and recommendations**
+- Reference all license types: Developer, Team, System
+- Calculate licensing costs for data plane (ports) and control plane (protocols)
+- Recommend appropriate licenses based on test scenarios
+- Never speculates or makes up information
+- Always includes Solutions Engineer verification disclaimer
+- **Use when:** Planning tests, understanding licensing costs, choosing license tier
 - **Status:** ✅ Production-Ready
 
 ---
@@ -147,9 +157,13 @@ kengotg/
     │   ├── README.md
     │   └── references/                    Protocol examples, assertions, GitHub snippets
     │
-    └── ixia-c-deployment/                 Skill #4
-        ├── SKILL.md                       Docker Compose, Containerlab, K8s options
-        └── README.md                      (optional)
+    ├── ixia-c-deployment/                 Skill #4
+    │   ├── SKILL.md                       Docker Compose, Containerlab, K8s options
+    │   └── README.md                      (optional)
+    │
+    └── keng-licensing/                    Skill #5
+        ├── SKILL.md                       License types, cost formulas, recommendations
+        └── evals.json                     Test cases (8 scenarios)
 ```
 
 ---
@@ -262,23 +276,55 @@ docker compose up -d
 
 ---
 
+### 5️⃣ keng-licensing
+
+**When:** You need to understand OTG licensing costs or choose a license tier
+
+```bash
+/keng-licensing
+
+User: "I need to run a test with 2x100GE ports and BGP+ISIS.
+Should I use Team or System license and what will it cost?"
+
+Output: License recommendation + cost breakdown + SE verification note
+```
+
+**Example questions:**
+- "What's the difference between KENG-DPLU and KENG-CPLU?"
+- "How many seats do I get with a Team license?"
+- "Calculate cost for 3x10GE + 5 BGP sessions"
+- "Which license should I choose for..."
+
+**Features:**
+- References all license types and allocations
+- Calculates data plane costs (port speeds)
+- Calculates control plane costs (protocol sessions)
+- Recommends appropriate license tier
+- Includes KENG-UNLIMITED-CP optimization guidance
+- Always includes Solutions Engineer verification disclaimer
+- **Never** makes up pricing or feature information
+
+---
+
 ## Key Capabilities
 
-| Capability | ixnetwork-to-keng-converter | otg-config-generator | snappi-script-generator | ixia-c-deployment |
-|---|---|---|---|---|
-| **BGP** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **Ethernet/IPv4** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **VLAN** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **ISIS** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **LACP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **LLDP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **Traffic Flows** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support |
-| **Feasibility Check** | ✅ Analysis | N/A | N/A | N/A |
-| **Conversion Report** | ✅ Detailed | N/A | N/A | N/A |
-| **Test Execution** | N/A | N/A | ✅ Full automation | N/A |
-| **Infrastructure Deploy** | N/A | N/A | N/A | ✅ Docker Compose / Containerlab |
-| **Health Verification** | N/A | N/A | N/A | ✅ API checks |
-| **Troubleshooting** | N/A | N/A | N/A | ✅ Guides |
+| Capability | ixnetwork-to-keng | otg-config-gen | snappi-script-gen | ixia-c-deploy | keng-licensing |
+|---|---|---|---|---|---|
+| **BGP** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support | ✅ Cost calc |
+| **Ethernet/IPv4** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support | N/A |
+| **VLAN** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support | N/A |
+| **ISIS** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support | ✅ Cost calc |
+| **LACP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support | ✅ Cost calc |
+| **LLDP** | ❌ Convert | ✅ Generate | ✅ Execute | ✅ Support | N/A |
+| **Traffic Flows** | ✅ Convert | ✅ Generate | ✅ Execute | ✅ Support | N/A |
+| **Feasibility Check** | ✅ Analysis | N/A | N/A | N/A | N/A |
+| **Conversion Report** | ✅ Detailed | N/A | N/A | N/A | N/A |
+| **Test Execution** | N/A | N/A | ✅ Full | N/A | N/A |
+| **License Cost Calc** | N/A | N/A | N/A | N/A | ✅ Full |
+| **License Recommendation** | N/A | N/A | N/A | N/A | ✅ Personalized |
+| **Infrastructure Deploy** | N/A | N/A | N/A | ✅ Docker/Clab | N/A |
+| **Health Verification** | N/A | N/A | N/A | ✅ API checks | N/A |
+| **Troubleshooting** | N/A | N/A | N/A | ✅ Guides | N/A |
 
 ---
 
@@ -287,23 +333,26 @@ docker compose up -d
 ### For IxNetwork Users
 
 1. **Read:** `.claude/skills/INDEX.md` (skill discovery)
-2. **Use:** `/ixnetwork-to-keng-converter` to convert your config
-3. **Review:** `conversion_report.md` for compatibility
-4. **Execute:** Use `/snappi-script-generator` to create test script
+2. **Check License:** Use `/keng-licensing` to understand licensing requirements & costs
+3. **Use:** `/ixnetwork-to-keng-converter` to convert your config
+4. **Review:** `conversion_report.md` for compatibility
+5. **Execute:** Use `/snappi-script-generator` to create test script
 
 ### For New OTG Users
 
 1. **Read:** `.claude/skills/INDEX.md`
-2. **Use:** `/otg-config-generator` to create config from scratch
-3. **Execute:** `/snappi-script-generator` to create test script
-4. **Run:** `python test_xxx.py`
+2. **Check License:** Use `/keng-licensing` to understand licensing options
+3. **Use:** `/otg-config-generator` to create config from scratch
+4. **Execute:** `/snappi-script-generator` to create test script
+5. **Run:** `python test_xxx.py`
 
 ### For Test Automation
 
-1. **Generate:** OTG config (either converted or created)
-2. **Create:** Snappi script with `/snappi-script-generator`
-3. **Integrate:** `test_xxx.py` into your CI/CD pipeline
-4. **Parse:** JSON reports for assertions/metrics
+1. **Plan:** Use `/keng-licensing` to understand licensing costs & recommendations
+2. **Generate:** OTG config (either converted or created)
+3. **Create:** Snappi script with `/snappi-script-generator`
+4. **Integrate:** `test_xxx.py` into your CI/CD pipeline
+5. **Parse:** JSON reports for assertions/metrics
 
 ---
 
@@ -435,6 +484,7 @@ tar -czf kengotg-skills.tar.gz /path/to/kengotg
 | otg-config-generator | 1.0 | ✅ Production-Ready | 2026-03-17 |
 | snappi-script-generator | 1.1 | ✅ Production-Ready | 2026-03-17 |
 | ixia-c-deployment | 1.0 | ✅ Production-Ready | 2026-03-17 |
+| keng-licensing | 1.0 | ✅ Production-Ready | 2026-03-18 |
 
 ---
 

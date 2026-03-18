@@ -1,0 +1,106 @@
+{
+  "skill_name": "keng-licensing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What's the difference between KENG-DPLU and KENG-CPLU in OTG licensing?",
+      "expected_output": "Clear explanation that KENG-DPLU is data plane (port speed based) and KENG-CPLU is control plane (protocol sessions). Examples of costs for each.",
+      "files": [],
+      "assertions": [
+        "Explains KENG-DPLU as data plane license units",
+        "Explains KENG-CPLU as control plane license units",
+        "Mentions port speeds affect DP cost",
+        "Mentions protocols (BGP, ISIS, etc.) affect CP cost",
+        "Provides the disclaimer about SE verification"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need to run a test with 2 concurrent users, 2x10GE ports, and 1 BGP session. Which license should I choose and what would the cost be?",
+      "expected_output": "Clarifying questions about preference (Developer/Team/System), then cost calculation, recommendation, and SE disclaimer.",
+      "files": [],
+      "assertions": [
+        "Asks clarifying questions or makes reasonable assumption about license tier",
+        "Correctly calculates DP cost (10 units per 10GE port)",
+        "Correctly calculates CP cost (1 unit for BGP)",
+        "Provides license recommendation (likely Team or Developer)",
+        "Includes SE verification disclaimer",
+        "Emphasizes that costs may vary"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "What's the pricing for a System license per month?",
+      "expected_output": "Skill refuses to speculate and suggests contacting a Solutions Engineer.",
+      "files": [],
+      "assertions": [
+        "Does not make up pricing information",
+        "Clearly states 'I don't know' or equivalent",
+        "Suggests contacting a Solutions Engineer",
+        "Does not provide speculative commercial terms"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I'm planning a test with 100GE x3, and heavy protocol config: 5 BGP sessions, 3 ISIS sessions, 2 LACP sessions. Should I use KENG-UNLIMITED-CP?",
+      "expected_output": "Calculates CP cost (10 units), recommends KENG-UNLIMITED-CP since 10 > 50 is false, but explain when it's useful.",
+      "files": [],
+      "assertions": [
+        "Correctly calculates CP cost (5 BGP + 3 ISIS + 2 LACP = 10 units)",
+        "Correctly calculates DP cost (300 units for 3x100GE)",
+        "Correctly explains that KENG-UNLIMITED-CP is only needed if CP > 50 units",
+        "Explains that in this case CP cost is 10, so KENG-UNLIMITED-CP not needed",
+        "Provides license tier recommendation",
+        "Includes SE disclaimer"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "How does license checkout and release work? What happens if I change my config mid-test?",
+      "expected_output": "Explains checkout at SetConfig, that licenses remain checked out during config, and released when config changes.",
+      "files": [],
+      "assertions": [
+        "Mentions licenses check out at OTG SetConfig API call",
+        "States licenses remain checked out for configuration duration",
+        "Explains licenses release when configuration changes",
+        "Accurate technical explanation without speculation"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Can I transfer my license to another user or machine?",
+      "expected_output": "Skill should not speculate and suggest contacting SE.",
+      "files": [],
+      "assertions": [
+        "Does not make up information about license transfer",
+        "Says 'I don't know' or refuses to speculate",
+        "Suggests contacting Solutions Engineer",
+        "Does not provide made-up policy information"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "What license seats do I get with a Team edition KENG-SEAT license?",
+      "expected_output": "Simple, direct answer: Team KENG-SEAT = 8 seats.",
+      "files": [],
+      "assertions": [
+        "Correctly states Team KENG-SEAT = 8 seats",
+        "References the licensing table",
+        "Clear and concise"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I have 16 protocol sessions of various types (BGP, ISIS, RSVP, LACP mix). My DP cost is 150 units. What license should I pick?",
+      "expected_output": "Should ask which edition they prefer or recommend System. Explain CP > 50, so KENG-UNLIMITED-CP useful. Include SE disclaimer.",
+      "files": [],
+      "assertions": [
+        "Recognizes CP cost will be 16 units (one per session)",
+        "Explains KENG-UNLIMITED-CP not needed since 16 < 50",
+        "Recommends license tier (likely System for this scale)",
+        "Acknowledges they need sufficient DPLU allocation (System has 800)",
+        "Includes SE disclaimer"
+      ]
+    }
+  ]
+}
