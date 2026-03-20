@@ -8,9 +8,9 @@
 
 ## Executive Summary
 
-This design establishes a **hybrid orchestrator** that validates user intent upfront, executes sub-agents sequentially with intelligent checkpointing, and collects structured artifacts throughout execution. The orchestrator is robust (adaptive retry, smart recovery), auditable (complete artifact trail), and reusable (templates and patterns for future runs).
+This design establishes a **hybrid orchestrator** that validates user intent upfront, executes sub-agents with intelligent checkpointing (sequential for dependent agents, parallel for independent ones), and collects structured artifacts throughout execution. The orchestrator is robust (adaptive retry, smart recovery), auditable (complete artifact trail), and reusable (templates and patterns for future runs).
 
-The orchestrator bridges Claude Code (immediate) and Anthropic SDK (future), ensuring architecture is platform-agnostic.
+The orchestrator bridges Claude Code (immediate) and Anthropic SDK (future), ensuring architecture is platform-agnostic. A transport adapter layer abstracts platform differences, allowing identical orchestration logic to run on both platforms.
 
 ---
 
@@ -125,34 +125,110 @@ Use Case Detection Questions:
 ### Purpose
 Manage execution flow across sub-agents with clear state transitions and checkpoints.
 
-### State Machine Diagram
+### Conditional Dispatch Model
+
+The orchestrator determines which sub-agents to invoke based on the validated `use_case` field in the intent:
+
+**Use Case Dispatch Paths** (from AGENT_ORCHESTRATION_PLAN.md):
+
+```
+Full Greenfield (full_greenfield):
+  ┌─────────────────────┐
+  │ 🔵 ixia-c-deploy    │ (parallel group A)
+  └──────────┬──────────┘
+             │
+  ┌──────────────────────┐
+  │ 🟢 otg-config-gen    │ (sequential, depends on A)
+  └──────────┬───────────┘
+             │
+  ┌──────────────────────┐
+  │ 🟡 snappi-script-gen │ (sequential, depends on previous)
+  └──────────┬───────────┘
+             │
+  ┌──────────────────────┐
+  │ 🔴 keng-licensing    │ (optional, independent)
+  └──────────────────────┘
+
+Config + Script Only (config_only):
+  ┌──────────────────────┐
+  │ 🟢 otg-config-gen    │ (entry point, existing infra)
+  └──────────┬───────────┘
+             │
+  ┌──────────────────────┐
+  │ 🟡 snappi-script-gen │ (depends on previous)
+  └──────────┬───────────┘
+             │
+  ┌──────────────────────┐
+  │ 🔴 keng-licensing    │ (optional)
+  └──────────────────────┘
+
+Deployment Only (deployment_only):
+  ┌──────────────────────┐
+  │ 🔵 ixia-c-deploy     │ (single agent)
+  └──────────────────────┘
+
+Script from Existing Config (script_only):
+  ┌──────────────────────┐
+  │ 🟡 snappi-script-gen │ (single agent, takes config as input)
+  └──────────────────────┘
+
+Licensing Only (licensing_only):
+  ┌──────────────────────┐
+  │ 🔴 keng-licensing    │ (single agent)
+  └──────────────────────┘
+
+Full Pipeline + Parallel Licensing (full_greenfield_with_licensing):
+  ┌─────────────────────┐         ┌──────────────────────┐
+  │ 🔵 ixia-c-deploy    │ ───┬──→ │ 🔴 keng-licensing    │ (parallel group A)
+  └──────────┬──────────┘    │    └──────────────────────┘
+             │               │
+             │ (wait for all in group A)
+             │
+  ┌──────────────────────┐
+  │ 🟢 otg-config-gen    │
+  └──────────┬───────────┘
+             │
+  ┌──────────────────────┐
+  │ 🟡 snappi-script-gen │
+  └──────────────────────┘
+```
+
+**State Transitions:**
 ```
 [Intent Validated]
     ↓
-[🔵 Dispatch ixia-c-deployment] (if needed)
+[Classify Use Case from intent.use_case field]
     ↓
-[Checkpoint 1] → [User Approval?] → No → [End / Edit Intent]
-    ↓ Yes
-[🟢 Dispatch otg-config-generator]
+[Determine Dispatch Sequence → Sub-agent Queue]
     ↓
-[Checkpoint 2] → [User Approval?] → No → [End / Edit Intent]
-    ↓ Yes
-[🟡 Dispatch snappi-script-generator]
+[For each sub-agent in queue]:
+    ├─ [Invoke Sub-agent]
+    ├─ [Save Checkpoint]
+    ├─ [User Approval Gate]
+    │  ├─ [Yes] → Proceed to next
+    │  ├─ [No] → End / Edit Intent & Restart
+    │  └─ [Edit & Retry] → Modify agent input, re-run same agent
+    │
+[All sub-agents complete]
     ↓
-[Checkpoint 3] → [User Approval?] → No → [End / Edit Intent]
-    ↓ Yes
-[🔴 Dispatch keng-licensing]
+[Generate Manifest + Summary]
     ↓
-[Checkpoint 4] → [User Approval?] → No → [End]
-    ↓ Yes
-[✅ Run Complete] → [Generate Manifest] → [Done]
+[✅ Run Complete]
 ```
 
+**Parallel Dispatch Rules:**
+- `ixia-c-deployment` and `keng-licensing` can run in parallel (no data dependency)
+- `otg-config-generator` must complete before `snappi-script-generator` (generator depends on config)
+- All other orderings are sequential
+- Checkpoints are saved after each agent completes, regardless of parallelism
+- User confirmation gates are serialized (one checkpoint at a time)
+
 ### Execution Rules
-- **Sequential dispatch:** Each sub-agent waits for previous to complete
-- **Adaptive retry:** Retry based on sub-agent type and failure classification
-- **Checkpoints between agents:** No checkpoint → no progress guarantee
-- **User confirmation gate:** After each successful checkpoint
+- **Conditional dispatch:** Sequence determined by `use_case` field in validated intent (see Conditional Dispatch Model above)
+- **Parallel dispatch:** `ixia-c-deployment` and `keng-licensing` run in parallel when both are needed; all other agents run sequentially
+- **Adaptive retry:** Retry based on sub-agent type and failure classification (see Adaptive Retry Strategy below)
+- **Checkpoints between agents:** Saved after each agent completes, regardless of parallelism
+- **User confirmation gate:** After each checkpoint (serialized, one at a time)
 
 ### Adaptive Retry Strategy
 
@@ -161,17 +237,26 @@ Manage execution flow across sub-agents with clear state transitions and checkpo
 | 🔵 `ixia-c-deployment` | 10min | 3 | Docker ops slow, transient-heavy (socket, disk, network) |
 | 🟢 `otg-config-generator` | 2min | 2 | Config generation fast, validation-heavy |
 | 🟡 `snappi-script-generator` | 1min | 1 | Deterministic, template-driven, low failure rate |
-| 🔴 `keng-licensing` | 30sec | 1 | API-driven, quick response expected |
+| 🟠 `keng-licensing` | 30sec | 1 | API-driven, quick response expected |
 
 **Retry backoff:** Exponential → 2s, 4s, 8s between attempts
+
+**max_wait_time_minutes precedence:**
+- `max_wait_time_minutes` from the intent (default: 30) acts as a **global wall-clock budget** across all agents and all retries combined
+- If an agent invocation would exceed the remaining budget, the orchestrator:
+  - Skips remaining retries for that agent (fail fast)
+  - Offers user two options: [Continue without this agent] or [Extend deadline]
+- Example: User sets `max_wait_time_minutes: 5`, deployment starts, timeout is 10min per spec
+  - After 4 minutes, deployment times out once, retries begin at 4m 2s, at 4m 6s, exceeds 5min budget
+  - Orchestrator stops retrying, offers to continue without deployment or extend deadline
 
 ### Checkpoint Structure
 ```json
 {
-  "checkpoint_id": "ckpt_1_ixia-c-deployment",
+  "checkpoint_id": "ckpt_2_ixia-c-deployment",
   "sub_agent": "ixia-c-deployment",
   "agent_color": "🔵",
-  "sequence": 1,
+  "sequence": 2,
   "status": "success",
 
   "input": {
@@ -191,20 +276,51 @@ Manage execution flow across sub-agents with clear state transitions and checkpo
   "retry_count": 0,
   "warnings": [],
 
-  "user_action": "approved"
+  "user_action": "approved",
+  "user_action_timestamp": "2026-03-19T10:15:35Z"
 }
 ```
+
+**user_action values:**
+- `"approved"` — User clicked [Yes], proceed to next agent
+- `"rejected"` — User clicked [No], halt pipeline and return to intent editing
+- `"edit_and_retry"` — User clicked [Edit & Retry], modified input params, re-invoked same agent (see Edit & Retry Behavior below)
+
+**Edit & Retry Behavior:**
+When user selects [Edit & Retry]:
+1. **Display editable fields:** Show sub-agent input fields that user can modify (e.g., port speeds, controller URL)
+2. **User modifies:** User edits one or more fields
+3. **Re-invocation:** Orchestrator re-invokes sub-agent with modified input
+4. **New retry attempt:** This counts as a retry (increments `retry_count`)
+5. **Checkpoint handling:** The new output overwrites the previous checkpoint (same `checkpoint_id`, same `sequence`)
+6. **User action recorded:** `user_action: "edit_and_retry"`, `user_action_timestamp` recorded
+
+If max retries exceeded and user wants to [Edit & Retry], ask if they want to escalate to [Edit Intent] (which restarts the pipeline).
 
 ### User Confirmation Gate
 After each successful checkpoint, display:
 ```
+═══════════════════════════════════════════════════════════════
 🔵 ixia-c-deployment: ✅ Success
-   Generated: docker-compose.yml (2KB)
-   Ports: te1:5555, te2:5556
+═══════════════════════════════════════════════════════════════
 
-   Does this look right?
-   [Yes] [No] [Edit & Retry]
+Generated: docker-compose.yml (2KB)
+Ports: te1:5555, te2:5556
+Duration: 45 seconds
+
+Does this look right?
+
+   [1] Yes, proceed to next agent
+   [2] No, stop and edit intent
+   [3] Edit & Retry (modify deployment parameters and re-run)
+
+Your choice? > _
 ```
+
+**Option behavior:**
+- `[1] Yes` → Save checkpoint with `user_action: "approved"`, proceed to next agent in queue
+- `[2] No` → Save checkpoint with `user_action: "rejected"`, halt orchestration, return user to Intent editing (user can restart with edited intent)
+- `[3] Edit & Retry` → Show editable fields (e.g., deployment method, port speeds), user modifies, orchestrator re-invokes same agent, loop back to confirmation gate
 
 ---
 
@@ -216,22 +332,27 @@ Create persistent, structured records that are auditable and reusable.
 ### Directory Structure
 ```
 orchestration_runs/
-├── run_<timestamp>/
-│   ├── intent.json                    # User's validated intent
-│   ├── manifest.json                  # Master execution record
-│   ├── summary.md                     # Human-readable summary
+├── run_20260319_101530/
+│   ├── intent.json                          # User's validated intent (not a checkpoint)
+│   ├── manifest.json                        # Master execution record
+│   ├── summary.md                           # Human-readable summary
 │   ├── checkpoints/
-│   │   ├── ckpt_1_intent_validated.json
-│   │   ├── ckpt_2_ixia-c-deployment.json
-│   │   ├── ckpt_3_otg-config-generator.json
-│   │   ├── ckpt_4_snappi-script-generator.json
-│   │   └── ckpt_5_keng-licensing.json
+│   │   ├── ckpt_0_ixia-c-deployment.json    # Sequence 0: deployment (if needed)
+│   │   ├── ckpt_1_otg-config-generator.json # Sequence 1: config generation
+│   │   ├── ckpt_2_snappi-script-gen.json    # Sequence 2: script generation
+│   │   └── ckpt_3_keng-licensing.json       # Sequence 3: licensing (if needed)
 │   └── outputs/
-│       ├── docker-compose.yml
-│       ├── otg_config.json
-│       ├── test_script.py
-│       └── infrastructure.yaml
+│       ├── docker-compose.yml               # From ckpt_0 (if applicable)
+│       ├── otg_config.json                  # From ckpt_1 (if applicable)
+│       ├── test_script.py                   # From ckpt_2 (if applicable)
+│       └── infrastructure.yaml              # Generated by orchestrator from ckpt_0 + ckpt_1
 ```
+
+**Numbering scheme:**
+- `sequence` in checkpoint starts at 0 for the first agent invoked in the dispatch queue
+- Checkpoint filenames match sequence: `ckpt_<sequence>_<agent_name>.json`
+- For use cases with fewer agents (e.g., script-only), the sequence still starts at 0
+- Intent validation is not a checkpoint; it happens in Phase 1 before dispatch
 
 ### Master Manifest (manifest.json)
 ```json
@@ -249,39 +370,65 @@ orchestration_runs/
 
   "execution_flow": [
     {
-      "sequence": 1,
+      "sequence": 0,
       "sub_agent": "ixia-c-deployment",
       "agent_color": "🔵",
       "status": "success",
       "retry_count": 0,
       "duration_seconds": 45,
       "user_action": "approved",
+      "user_action_timestamp": "2026-03-19T10:16:15Z",
       "output_size_bytes": 2048,
-      "output_checksum": "sha256:abc123..."
+      "output_checksum": "sha256:abc123...",
+      "warnings": []
     },
     {
-      "sequence": 2,
+      "sequence": 1,
       "sub_agent": "otg-config-generator",
       "agent_color": "🟢",
       "status": "success",
       "retry_count": 1,
-      "first_attempt_error": "Missing port speed; retried",
+      "first_attempt_error": "Missing port speed; user edited intent and retried",
       "duration_seconds": 30,
-      "user_action": "approved"
+      "user_action": "approved",
+      "user_action_timestamp": "2026-03-19T10:16:50Z",
+      "warnings": []
     },
-    ...
+    {
+      "sequence": 2,
+      "sub_agent": "snappi-script-generator",
+      "agent_color": "🟡",
+      "status": "success",
+      "retry_count": 0,
+      "duration_seconds": 25,
+      "user_action": "approved",
+      "user_action_timestamp": "2026-03-19T10:17:30Z",
+      "warnings": []
+    },
+    {
+      "sequence": 3,
+      "sub_agent": "keng-licensing",
+      "agent_color": "🔴",
+      "status": "success",
+      "retry_count": 0,
+      "duration_seconds": 15,
+      "user_action": "approved",
+      "user_action_timestamp": "2026-03-19T10:17:50Z",
+      "warnings": ["License tier Developer exceeds recommended for 4 BGP sessions"]
+    }
   ],
 
   "errors": [],
   "warnings": [
-    "License will exceed Developer tier limits; Team recommended"
+    "License: Developer tier will support only up to 2 BGP sessions; Team recommended"
   ],
 
   "final_status": "success",
   "output_files": [
     "outputs/docker-compose.yml",
     "outputs/otg_config.json",
-    "outputs/test_script.py"
+    "outputs/test_script.py",
+    "outputs/infrastructure.yaml"
   ]
 }
 ```
@@ -324,13 +471,46 @@ orchestration_runs/
 3. **Failure Recovery:** Record common failures → "When deployment times out, usually Docker socket issue"
 4. **Metrics:** Track success rates, retry distributions, performance per sub-agent
 
+### Infrastructure YAML Generation
+
+**What is infrastructure.yaml?**
+A YAML manifest that aggregates deployment and infrastructure details needed by `snappi-script-generator`. It is generated by the orchestrator (not by a sub-agent) after the deployment checkpoint completes.
+
+**When is it generated?**
+- If `ixia-c-deployment` is invoked and succeeds, the orchestrator extracts relevant fields from its checkpoint output and creates `infrastructure.yaml` before invoking the next agent
+
+**Schema:**
+```yaml
+controller:
+  url: "localhost:8443"
+  protocol: "https"
+
+ports:
+  - name: "te1"
+    location: "192.168.1.1:5555"
+    speed: "100GE"
+  - name: "te2"
+    location: "192.168.1.1:5556"
+    speed: "100GE"
+
+deployment_manifest:
+  method: "docker_compose"
+  file_path: "outputs/docker-compose.yml"
+  container_image: "keysight/ixia-c-one:latest"
+
+generated_timestamp: "2026-03-19T10:16:15Z"
+```
+
+**Usage:**
+`snappi-script-generator` reads `infrastructure.yaml` (plus `otg_config.json` from the previous checkpoint) to generate the final test script with correct controller endpoints and port locations.
+
 ### Agent Color Coding
 - 🔵 `ixia-c-deployment` → Blue
 - 🟢 `otg-config-generator` → Green
 - 🟡 `snappi-script-generator` → Yellow
-- 🔴 `keng-licensing` → Red
+- 🟠 `keng-licensing` → Orange (revised from red to signal advisory, not error)
 
-Applied to: console logs, summary markdown, manifest, checkpoint files
+Applied to: console logs, summary markdown, manifest, checkpoint files. For non-emoji environments (log files, CI), use ASCII fallbacks: `[DEPLOY]`, `[CONFIG]`, `[SCRIPT]`, `[LICENSE]`.
 
 ---
 
@@ -437,12 +617,94 @@ save_checkpoint(
 )
 ```
 
-**Output Validation:**
-Each sub-agent output must conform to a schema:
-- `ixia-c-deployment` → deployment manifest (docker-compose.yml, port map)
-- `otg-config-generator` → OTG JSON config
-- `snappi-script-generator` → Python script (executable, with assertions)
-- `keng-licensing` → license recommendation, cost estimate
+### Sub-Agent Output Schemas
+
+Each sub-agent output must conform to its schema for orchestrator validation and checkpoint storage.
+
+**1. ixia-c-deployment Output Schema**
+```json
+{
+  "status": "success",
+  "deployment_manifest": {
+    "method": "docker_compose|containerlab",
+    "file_path": "outputs/docker-compose.yml",
+    "file_content": "...",
+    "container_image": "keysight/ixia-c-one:latest"
+  },
+  "controller_url": "localhost:8443",
+  "ports": [
+    {"name": "te1", "location": "192.168.1.1:5555", "speed": "100GE"},
+    {"name": "te2", "location": "192.168.1.1:5556", "speed": "100GE"}
+  ],
+  "warnings": []
+}
+```
+
+**2. otg-config-generator Output Schema**
+```json
+{
+  "status": "success",
+  "otg_config": {
+    "description": "BGP convergence test",
+    "ports": [...],
+    "devices": [...],
+    "flows": [...],
+    "protocols": {...}
+  },
+  "warnings": []
+}
+```
+
+**3. snappi-script-generator Output Schema**
+```json
+{
+  "status": "success",
+  "script": {
+    "file_path": "outputs/test_script.py",
+    "file_content": "...",
+    "entry_point": "main()",
+    "supports_interactive": true
+  },
+  "assertions": [
+    "bgp_session_established",
+    "traffic_flowing_bidirectional"
+  ],
+  "warnings": []
+}
+```
+
+**4. keng-licensing Output Schema** (Structured)
+```json
+{
+  "status": "success",
+  "recommendation": {
+    "tier": "team|developer|system",
+    "reason": "4 BGP sessions exceed Developer tier limit of 2",
+    "seats_needed": 1,
+    "exceeds_tier": "developer"
+  },
+  "cost_estimate": {
+    "tier": "team",
+    "annual_cost_usd": 5000,
+    "currency": "USD"
+  },
+  "disclaimer": "Cost estimates are advisory. Please verify with Solutions Engineer.",
+  "warnings": []
+}
+```
+
+**Validation Flow:**
+```python
+# After sub-agent invocation, validate output
+schema = get_schema_for_agent(agent_name)
+if not jsonschema.validate(skill_result.output, schema):
+  raise ValidationError(f"Output from {agent_name} doesn't match schema")
+
+# Save to checkpoint
+checkpoint.output = skill_result.output
+checkpoint.output_size_bytes = len(json.dumps(checkpoint.output))
+checkpoint.output_checksum = sha256(json.dumps(checkpoint.output))
+```
 
 ### Testing Strategy
 
@@ -468,25 +730,83 @@ Each sub-agent output must conform to a schema:
 - Checkpoint checksums
 - Output file existence
 
-### Future SDK Integration
+### Transport Adapter Layer
 
-**Current (Claude Code):**
+To ensure platform-agnostic design, the orchestrator uses a **transport adapter** that abstracts sub-agent invocation. Both Claude Code and future SDK implementations use the same interface.
+
+**SubAgentTransport Interface** (language-agnostic contract):
 ```python
-invoke_skill(skill="otg-config-generator", context={...})
+class SubAgentTransport:
+    """Abstract transport for invoking sub-agents."""
+
+    def invoke(
+        self,
+        agent_name: str,
+        context: dict
+    ) -> SubAgentResult:
+        """
+        Invoke a sub-agent.
+
+        Args:
+            agent_name: skill name (e.g., "otg-config-generator")
+            context: normalized intent + previous checkpoints
+
+        Returns:
+            SubAgentResult: structured output + metadata
+
+        Raises:
+            SubAgentError: if invocation fails
+        """
+        pass
+
+    def supports_interactive_confirmation(self) -> bool:
+        """Return True if transport supports user confirmation gates."""
+        pass
+
+    def get_checkpoint_timeout(self, agent_name: str) -> int:
+        """Return timeout in seconds for this agent."""
+        pass
 ```
 
-**Future (Anthropic SDK):**
+**Claude Code Implementation:**
 ```python
-agent = OrchestratorAgent()
-result = agent.run(user_intent=request, max_iterations=10)
+class SkillTransport(SubAgentTransport):
+    def invoke(self, agent_name, context):
+        # Use Skill tool to invoke sub-agent
+        result = skill(skill=agent_name, context=context)
+        return SubAgentResult.from_skill_result(result)
+
+    def supports_interactive_confirmation(self):
+        return True  # Claude Code is interactive
+```
+
+**Anthropic SDK Implementation** (future):
+```python
+class SDKTransport(SubAgentTransport):
+    def invoke(self, agent_name, context):
+        # Use SDK tools to invoke sub-agent
+        result = self.sdk_client.agents.invoke(
+            agent_id=self.agent_ids[agent_name],
+            input=context
+        )
+        return SubAgentResult.from_sdk_result(result)
+
+    def supports_interactive_confirmation(self):
+        return False  # SDK may not support interactive confirmation
 ```
 
 **Invariants (both platforms):**
 - State machine logic unchanged
 - Intent validation unchanged
-- Checkpoint structure unchanged
+- Checkpoint structure unchanged (JSON schema)
 - Artifact format unchanged
 - Error recovery strategy unchanged
+- Sub-agent output schemas unchanged
+
+**Design Implications:**
+- Orchestrator is decoupled from transport (dependency injection)
+- SDK implementation will need to handle non-interactive confirmation differently (e.g., pre-configured approvals, async confirmation)
+- Checkpoints and artifacts are transport-independent (pure JSON/YAML)
 
 ---
 
@@ -506,15 +826,17 @@ result = agent.run(user_intent=request, max_iterations=10)
 ## Assumptions & Constraints
 
 **Assumptions:**
-- Sub-agents are reliable (invocations succeed or fail deterministically)
-- Intent is well-formed after validation phase
-- User is present for confirmation gates (synchronous)
+- Sub-agent failures are classifiable as transient (retry-eligible) or deterministic (fail-fast)
+- Intent is well-formed and validated before dispatch begins
+- User is present for confirmation gates (synchronous, Claude Code only; SDK may differ)
 - Artifact storage is persistent (local filesystem or cloud)
+- Sub-agent output conforms to documented schemas
 
 **Constraints:**
-- Sequential sub-agent dispatch (parallelization not yet supported)
-- No cross-agent retry (if agent 3 fails, start from agent 3, not agent 1)
-- Confirmation gates require user interaction (not auto-confirmed)
+- Parallel dispatch limited to independent agents (e.g., deployment + licensing). Non-independent agents run sequentially.
+- No cross-agent retry (if agent at sequence N fails, restart from sequence N, not sequence 0)
+- Confirmation gates require synchronous user interaction (Claude Code); SDK transport may need alternative confirmation strategy
+- Sub-agent invocations are synchronous (no async/fire-and-forget)
 
 ---
 
@@ -530,16 +852,20 @@ result = agent.run(user_intent=request, max_iterations=10)
 
 ---
 
-## Rollout Plan
+## Implementation Roadmap
 
-1. **Implement Phase 1:** Intent intake & validation
-2. **Implement Phase 2:** State machine & orchestration
-3. **Implement Phase 3:** Checkpoint & artifact system
-4. **Implement Phase 4:** Error recovery
-5. **Implement Phase 5:** Sub-agent integration & testing
-6. **Integration test** across all phases
-7. **User acceptance test** with real use cases
-8. **Prepare for SDK migration** (architecture review, SDK adapter layer design)
+| Phase | Task | Acceptance Criteria | Dependencies |
+|-------|------|-------------------|--------------|
+| 1 | Implement intent validation | Intent schema validates all 6 use cases from AGENT_ORCHESTRATION_PLAN.md; unit tests pass | None |
+| 2 | Implement conditional dispatch engine | State machine correctly selects sub-agent sequence for all 6 use cases; unit tests | Phase 1 |
+| 3 | Implement checkpoint & artifact system | Checkpoints saved with correct numbering; manifest generated; human summary readable | Phase 2 |
+| 4 | Implement error recovery | Transient/validation/state errors handled correctly; recovery UI tested | Phase 2 |
+| 5 | Implement transport adapter layer | SlillTransport and mock SDK transport both pass same test suite; orchestrator decoupled from transport | Phase 3 |
+| 6 | Integration test full pipeline | Run all 6 use cases end-to-end with real sub-agents; artifacts verified | Phase 5 |
+| 7 | User acceptance test | Users run greenfield + existing-infra scenarios; confirm UX and approvals work | Phase 6 |
+| 8 | SDK migration prep | Design SDK transport implementation; prototype with Anthropic SDK | Phase 5 |
+
+**Critical path:** Phase 1 → 2 → 3 → 5 → 6 → 7 (8 is parallel with 6-7)
 
 ---
 
