@@ -1,1 +1,0 @@
-"""OTG Orchestrator Skill."""
