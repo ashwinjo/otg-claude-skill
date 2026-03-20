@@ -1,0 +1,242 @@
+{
+  "ports": [
+    {
+      "name": "te1",
+      "location": "veth-a"
+    },
+    {
+      "name": "te2",
+      "location": "veth-z"
+    }
+  ],
+  "devices": [
+    {
+      "name": "device1",
+      "container_name": "device1",
+      "device_eth": [
+        {
+          "name": "eth1",
+          "connection": {
+            "choice": "port_name",
+            "port_name": "te1"
+          },
+          "mac": "00:11:22:33:44:55",
+          "ipv4_addresses": [
+            {
+              "name": "ipv4_1",
+              "address": "10.0.0.1",
+              "prefix": 24,
+              "gateway": "10.0.0.2"
+            }
+          ]
+        }
+      ],
+      "bgp": [
+        {
+          "name": "bgp",
+          "router_id": "1.0.0.1",
+          "asn": 65001,
+          "ipv4_unicast": {
+            "sendunicast": true
+          },
+          "neighbors": [
+            {
+              "name": "bgp_neighbor_1",
+              "peer_address": "10.0.0.2",
+              "as_number": 65002
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "device2",
+      "container_name": "device2",
+      "device_eth": [
+        {
+          "name": "eth1",
+          "connection": {
+            "choice": "port_name",
+            "port_name": "te2"
+          },
+          "mac": "00:11:22:33:44:66",
+          "ipv4_addresses": [
+            {
+              "name": "ipv4_1",
+              "address": "10.0.0.2",
+              "prefix": 24,
+              "gateway": "10.0.0.1"
+            }
+          ]
+        }
+      ],
+      "bgp": [
+        {
+          "name": "bgp",
+          "router_id": "2.0.0.1",
+          "asn": 65002,
+          "ipv4_unicast": {
+            "sendunicast": true
+          },
+          "neighbors": [
+            {
+              "name": "bgp_neighbor_1",
+              "peer_address": "10.0.0.1",
+              "as_number": 65001
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow_te1_to_te2",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "te1",
+          "rx_names": [
+            "te2"
+          ]
+        }
+      },
+      "packet": [
+        {
+          "name": "eth",
+          "header": {
+            "choice": "ethernet",
+            "ethernet": {
+              "dst": {
+                "choice": "value",
+                "value": "00:11:22:33:44:66"
+              },
+              "src": {
+                "choice": "value",
+                "value": "00:11:22:33:44:55"
+              }
+            }
+          }
+        },
+        {
+          "name": "ipv4",
+          "header": {
+            "choice": "ipv4",
+            "ipv4": {
+              "src": {
+                "choice": "value",
+                "value": "10.0.0.1"
+              },
+              "dst": {
+                "choice": "value",
+                "value": "10.0.0.2"
+              }
+            }
+          }
+        },
+        {
+          "name": "udp",
+          "header": {
+            "choice": "udp",
+            "udp": {
+              "src_port": {
+                "choice": "value",
+                "value": 5000
+              },
+              "dst_port": {
+                "choice": "value",
+                "value": 5001
+              }
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 512
+      },
+      "rate": {
+        "choice": "pps",
+        "pps": 1000
+      },
+      "duration": {
+        "choice": "fixed_packets",
+        "fixed_packets": 120000
+      }
+    },
+    {
+      "name": "flow_te2_to_te1",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "te2",
+          "rx_names": [
+            "te1"
+          ]
+        }
+      },
+      "packet": [
+        {
+          "name": "eth",
+          "header": {
+            "choice": "ethernet",
+            "ethernet": {
+              "dst": {
+                "choice": "value",
+                "value": "00:11:22:33:44:55"
+              },
+              "src": {
+                "choice": "value",
+                "value": "00:11:22:33:44:66"
+              }
+            }
+          }
+        },
+        {
+          "name": "ipv4",
+          "header": {
+            "choice": "ipv4",
+            "ipv4": {
+              "src": {
+                "choice": "value",
+                "value": "10.0.0.2"
+              },
+              "dst": {
+                "choice": "value",
+                "value": "10.0.0.1"
+              }
+            }
+          }
+        },
+        {
+          "name": "udp",
+          "header": {
+            "choice": "udp",
+            "udp": {
+              "src_port": {
+                "choice": "value",
+                "value": 5001
+              },
+              "dst_port": {
+                "choice": "value",
+                "value": 5000
+              }
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 512
+      },
+      "rate": {
+        "choice": "pps",
+        "pps": 1000
+      },
+      "duration": {
+        "choice": "fixed_packets",
+        "fixed_packets": 120000
+      }
+    }
+  ]
+}

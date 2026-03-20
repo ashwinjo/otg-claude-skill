@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # Control Plane (CP): Ixia-c Controller
+  keng-controller:
+    image: ghcr.io/open-traffic-generator/ixia-c-controller:latest
+    container_name: keng-controller
+    ports:
+      - "8443:8443"      # REST API
+      - "40051:40051"    # gRPC
+    environment:
+      - DEPLOYMENT_MODE=docker
+    command:
+      - "--accept-eula"
+      - "--disable-app-usage-reporter"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8443"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 10s
+    networks:
+      - ixia-c-net
+    restart: unless-stopped
+
+  # Data Plane (DP): Traffic Engine A
+  ixia-c-traffic-engine-veth-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-traffic-engine-veth-a
+    privileged: true
+    environment:
+      # Interface configuration
+      - ARG_IFACE_LIST=virtual@af_packet,veth-a
+      # Listen port for data plane
+      - OPT_LISTEN_PORT=5555
+      # DPDK options (Docker-specific)
+      - OPT_NO_HUGEPAGES=Yes
+      - OPT_NO_PINNING=Yes
+      - OPT_ADAPTIVE_CPU_USAGE=Yes
+      # Wait for veth to be injected
+      - WAIT_FOR_IFACE=Yes
+    networks:
+      - ixia-c-net
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/5555"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+
+  # Protocol Engine A (shares TE-A namespace)
+  ixia-c-protocol-engine-veth-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:latest
+    container_name: ixia-c-protocol-engine-veth-a
+    privileged: true
+    network_mode: service:ixia-c-traffic-engine-veth-a
+    environment:
+      # Interface managed by protocol engine
+      - INTF_LIST=veth-a
+    restart: unless-stopped
+    depends_on:
+      - ixia-c-traffic-engine-veth-a
+
+  # Data Plane (DP): Traffic Engine Z
+  ixia-c-traffic-engine-veth-z:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-traffic-engine-veth-z
+    privileged: true
+    environment:
+      # Interface configuration
+      - ARG_IFACE_LIST=virtual@af_packet,veth-z
+      # Listen port for data plane
+      - OPT_LISTEN_PORT=5555
+      # DPDK options (Docker-specific)
+      - OPT_NO_HUGEPAGES=Yes
+      - OPT_NO_PINNING=Yes
+      - OPT_ADAPTIVE_CPU_USAGE=Yes
+      # Wait for veth to be injected
+      - WAIT_FOR_IFACE=Yes
+    networks:
+      - ixia-c-net
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/5555"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+
+  # Protocol Engine Z (shares TE-Z namespace)
+  ixia-c-protocol-engine-veth-z:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:latest
+    container_name: ixia-c-protocol-engine-veth-z
+    privileged: true
+    network_mode: service:ixia-c-traffic-engine-veth-z
+    environment:
+      # Interface managed by protocol engine
+      - INTF_LIST=veth-z
+    restart: unless-stopped
+    depends_on:
+      - ixia-c-traffic-engine-veth-z
+
+networks:
+  ixia-c-net:
+    driver: bridge

@@ -1,0 +1,17 @@
+controller:
+  ip: "localhost"
+  port: 8443
+  protocol: "https"
+  verify_ssl: false  # Self-signed certs in Docker deployment
+
+ports:
+  - name: "te1"
+    location: "veth-a"
+  - name: "te2"
+    location: "veth-z"
+
+test_config:
+  duration_seconds: 120
+  metrics_interval_seconds: 5
+  stop_on_failure: false
+  bgp_convergence_timeout: 30
