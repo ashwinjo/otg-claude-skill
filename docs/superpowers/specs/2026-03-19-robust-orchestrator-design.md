@@ -71,6 +71,7 @@ Convert raw user input into a normalized, validated intent object before any sub
 {
   "user_request": "Create BGP test with 2 ports, deploy with Docker, get script + license",
   "use_case": "full_greenfield",
+  "_comment": "use_case enum: full_greenfield, config_only, deployment_only, script_only, licensing_only. If use_case=full_greenfield + licensing.estimate_required=true, dispatch includes keng-licensing in parallel with deployment.",
 
   "deployment": {
     "method": "docker_compose",
@@ -253,10 +254,10 @@ Full Pipeline + Parallel Licensing (full_greenfield_with_licensing):
 ### Checkpoint Structure
 ```json
 {
-  "checkpoint_id": "ckpt_2_ixia-c-deployment",
+  "checkpoint_id": "ckpt_0_ixia-c-deployment",
   "sub_agent": "ixia-c-deployment",
   "agent_color": "🔵",
-  "sequence": 2,
+  "sequence": 0,
   "status": "success",
 
   "input": {
@@ -860,7 +861,7 @@ class SDKTransport(SubAgentTransport):
 | 2 | Implement conditional dispatch engine | State machine correctly selects sub-agent sequence for all 6 use cases; unit tests | Phase 1 |
 | 3 | Implement checkpoint & artifact system | Checkpoints saved with correct numbering; manifest generated; human summary readable | Phase 2 |
 | 4 | Implement error recovery | Transient/validation/state errors handled correctly; recovery UI tested | Phase 2 |
-| 5 | Implement transport adapter layer | SlillTransport and mock SDK transport both pass same test suite; orchestrator decoupled from transport | Phase 3 |
+| 5 | Implement transport adapter layer | SkillTransport and mock SDK transport both pass same test suite; orchestrator decoupled from transport | Phase 3 |
 | 6 | Integration test full pipeline | Run all 6 use cases end-to-end with real sub-agents; artifacts verified | Phase 5 |
 | 7 | User acceptance test | Users run greenfield + existing-infra scenarios; confirm UX and approvals work | Phase 6 |
 | 8 | SDK migration prep | Design SDK transport implementation; prototype with Anthropic SDK | Phase 5 |
