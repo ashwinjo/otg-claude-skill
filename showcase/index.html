@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Skills Showcase — KENG/OTG Ecosystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --bg-elevated: #12171f;
+      --bg-card: #161c26;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #388bfd;
+      --keysight-blue: #0066b3;
+      --keysight-light: #3399ff;
+      --success: #3fb950;
+      --border: #30363d;
+      --radius: 12px;
+      --radius-lg: 20px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4rem 0;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.1s forwards;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      max-width: 540px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.2s forwards;
+    }
+
+    .hero .value-statement {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.3s forwards;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Section headings */
+    section {
+      padding: 5rem 0;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 2rem;
+    }
+
+    /* What Are Claude Skills */
+    .skills-explainer {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 2rem 2.5rem;
+      border: 1px solid var(--border);
+    }
+
+    .skills-explainer p {
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+    }
+
+    .skills-explainer p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Skill cards */
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .skill-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .skill-card:hover {
+      border-color: var(--accent-dim);
+      transform: translateY(-2px);
+    }
+
+    .skill-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .skill-card .value {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .skill-card ul {
+      list-style: none;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .skill-card li {
+      padding-left: 1.25rem;
+      position: relative;
+      margin-bottom: 0.4rem;
+    }
+
+    .skill-card li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent-dim);
+      font-weight: 600;
+    }
+
+    .skill-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(63, 185, 80, 0.15);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+
+    /* Workflow */
+    .workflow-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      overflow-x: auto;
+    }
+
+    .workflow-wrap .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    .workflow-narrative {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .workflow-narrative strong {
+      color: var(--accent);
+    }
+
+    /* Business value */
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .value-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .value-item h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .value-item p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Stats */
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      padding: 2rem;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Contact */
+    .contact-section {
+      text-align: center;
+      padding-bottom: 4rem;
+    }
+
+    .contact-section .section-desc {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta {
+      display: inline-block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .cta:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    /* Mermaid overrides for dark theme */
+    .mermaid svg {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container">
+      <section class="hero">
+        <span class="hero-badge">Claude Skill Developer</span>
+        <h1>Ashwin Joshi</h1>
+        <p class="tagline">Claude Skill Developer — KENG/OTG Ecosystem</p>
+        <p class="value-statement">Four production-ready skills that extend Claude with domain expertise for Keysight KENG and Open Traffic Generator, enabling configuration, deployment, script automation, and licensing guidance.</p>
+      </section>
+
+      <section id="what-are-skills">
+        <span class="section-label">Overview</span>
+        <h2 class="section-title">What Are Claude Skills?</h2>
+        <div class="skills-explainer">
+          <p>Claude Skills are reusable knowledge modules that extend Claude with domain-specific expertise. When a user's task matches a skill's trigger conditions, Claude automatically invokes it—no manual selection required.</p>
+          <p>These skills are <strong>production-ready</strong>: they include feasibility checks, validation, error handling, and integration with upstream tooling. They turn Claude into a specialized assistant for network test automation.</p>
+        </div>
+      </section>
+
+      <section id="skills">
+        <span class="section-label">Skill Ecosystem</span>
+        <h2 class="section-title">KENG/OTG Skills</h2>
+        <p class="section-desc">Four skills covering configuration generation, script automation, deployment, and licensing.</p>
+        <div class="skill-grid">
+          <article class="skill-card">
+            <h3>otg-config-generator</h3>
+            <p class="value">Natural language → production-ready OTG JSON</p>
+            <ul>
+              <li>Parses test intent; maps to OTG schema</li>
+              <li>Validates completeness and constraints</li>
+              <li>BGP, ISIS, LACP, LLDP, VLANs, LAGs</li>
+              <li>"Create a BGP test with 2 ports..." → valid JSON</li>
+            </ul>
+            <span class="skill-badge">Production-Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>snappi-script-generator</h3>
+            <p class="value">OTG config → executable Python test scripts</p>
+            <ul>
+              <li>Full Snappi scripts with protocol setup</li>
+              <li>BGP convergence polling, traffic control</li>
+              <li>Configurable assertions, metrics collection</li>
+              <li>Error handling, retry, graceful cleanup</li>
+            </ul>
+            <span class="skill-badge">Production-Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>ixia-c-deployment</h3>
+            <p class="value">Deploy Ixia-c infrastructure before running tests</p>
+            <ul>
+              <li>Docker Compose (B2B, CP+DP, LAG)</li>
+              <li>Containerlab (ixia-c-one, per-component)</li>
+              <li>Validated image facts, health checks</li>
+              <li>Integration with snappi-script-generator</li>
+            </ul>
+            <span class="skill-badge">Production-Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>keng-licensing</h3>
+            <p class="value">Licensing guidance for OTG/KENG</p>
+            <ul>
+              <li>Seat allocations (Developer/Team/System)</li>
+              <li>KENG-DPLU/CPLU cost calculations</li>
+              <li>License mechanics, SE escalation</li>
+              <li>Structured, disclaimer-aware answers</li>
+            </ul>
+            <span class="skill-badge">Production-Ready</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="workflow">
+        <span class="section-label">End-to-End Flow</span>
+        <h2 class="section-title">Workflow</h2>
+        <p class="section-desc">From natural language to running tests on KENG.</p>
+        <div class="workflow-wrap">
+          <div class="mermaid">
+flowchart LR
+    subgraph input [Input]
+        NL[Natural Language]
+    end
+
+    subgraph skills [Claude Skills]
+        Gen[otg-config-generator]
+        Script[snappi-script-generator]
+        Deploy[ixia-c-deployment]
+    end
+
+    subgraph output [Output]
+        OTG[OTG Config JSON]
+        Py[Executable Python Script]
+        Infra[Running Ixia-c]
+    end
+
+    NL --> Gen
+    Gen --> OTG
+    OTG --> Script
+    Deploy --> Infra
+    Script --> Py
+    Infra --> Py
+          </div>
+          <p class="workflow-narrative"><strong>Natural Language → OTG → Snappi → Run</strong> — Describe tests in plain language, generate OTG JSON, produce executable scripts, and deploy Ixia-c infrastructure.</p>
+        </div>
+      </section>
+
+      <section id="value">
+        <span class="section-label">Business Value</span>
+        <h2 class="section-title">Why This Matters</h2>
+        <div class="value-grid">
+          <div class="value-item">
+            <h4>Deployment Ready</h4>
+            <p>Docker Compose and Containerlab for Ixia-c infrastructure—ready to run in minutes.</p>
+          </div>
+          <div class="value-item">
+            <h4>Faster Test Creation</h4>
+            <p>Natural language → valid OTG config in seconds. No manual schema lookup.</p>
+          </div>
+          <div class="value-item">
+            <h4>End-to-End Automation</h4>
+            <p>Config to executable script with protocol setup, traffic control, and assertions.</p>
+          </div>
+          <div class="value-item">
+            <h4>Licensing Clarity</h4>
+            <p>Structured guidance on KENG-DPLU/CPLU, seat allocations, and cost estimates.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="stats">
+        <span class="section-label">Technical Stats</span>
+        <h2 class="section-title">At a Glance</h2>
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Skills</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Production-Ready</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">BGP · ISIS · LACP · LLDP</div>
+            <div class="stat-label">Protocols Supported</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Docker · Containerlab</div>
+            <div class="stat-label">Deployment Options</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="contact-section">
+        <span class="section-label">Next Steps</span>
+        <h2 class="section-title">Schedule a Demo</h2>
+        <p class="section-desc">See these skills in action with live OTG generation and Snappi script execution.</p>
+        <a href="mailto:your.email@keysight.com" class="cta">Contact</a>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#161c26',
+        primaryTextColor: '#e6edf3',
+        primaryBorderColor: '#30363d',
+        lineColor: '#58a6ff',
+        secondaryColor: '#12171f',
+        tertiaryColor: '#0a0e14'
+      },
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true,
+        curve: 'basis'
+      }
+    });
+  </script>
+</body>
+</html>
