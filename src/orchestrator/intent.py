@@ -294,3 +294,268 @@ class IntentValidator:
             )
 
         return Intent(**intent_dict)
+
+
+class IntentIntake:
+    """Intent intake engine for classifying user requests and building intents."""
+
+    CLARIFYING_QUESTIONS = {
+        UseCase.full_greenfield: [
+            "What is the test scenario name?",
+            "Describe the test scenario",
+            "What protocols are involved?",
+            "How many ports are needed?",
+            "What deployment method? (docker_compose, containerlab)",
+            "What is the port speed? (1GE, 10GE, 25GE, 40GE, 100GE, 400GE)",
+            "Traffic rate (optional)?",
+            "Test duration in seconds (optional)?",
+        ],
+        UseCase.config_only: [
+            "What is the test scenario name?",
+            "Describe the test scenario",
+            "What protocols are involved?",
+            "How many ports are needed?",
+            "What is the controller URL?",
+            "Port locations (comma-separated)?",
+        ],
+        UseCase.deployment_only: [
+            "What deployment method? (docker_compose, containerlab)",
+            "What is the deployment type? (B2B, CP+DP, LAG)",
+            "How many ports are needed?",
+            "What is the port speed? (1GE, 10GE, 25GE, 40GE, 100GE, 400GE)",
+        ],
+        UseCase.script_only: [
+            "Path to OTG config?",
+            "What is the controller URL?",
+            "Port locations (comma-separated)?",
+        ],
+        UseCase.licensing_only: [
+            "How many ports are needed?",
+            "What is the port speed? (1GE, 10GE, 25GE, 40GE, 100GE, 400GE)",
+            "What protocols are involved?",
+            "Session count (optional)?",
+            "License tier? (Developer, Team, System)",
+        ],
+    }
+
+    @staticmethod
+    def classify_intent(user_request: str) -> UseCase:
+        """
+        Classify the intent from a user request based on keywords.
+
+        Args:
+            user_request: User's natural language request
+
+        Returns:
+            UseCase: Classified use case
+
+        Logic:
+            - If request mentions license/licensing -> licensing_only
+            - If request mentions script + otg/existing (not config) -> script_only
+            - If request mentions config + existing -> config_only
+            - If request mentions deploy (not test/config) -> deployment_only
+            - If request mentions deploy + test -> full_greenfield
+            - Default: full_greenfield
+        """
+        request_lower = user_request.lower()
+
+        # Check for licensing-only (highest priority)
+        if "license" in request_lower:
+            return UseCase.licensing_only
+
+        # Check for script-only (script + otg/existing, but not config)
+        if "script" in request_lower and ("otg" in request_lower or "existing" in request_lower):
+            if "config" not in request_lower:
+                return UseCase.script_only
+
+        # Check for config-only (config + existing)
+        if "config" in request_lower and "existing" in request_lower:
+            return UseCase.config_only
+
+        # Check for deployment-only (deploy/deployment without test/config)
+        if ("deploy" in request_lower) and ("test" not in request_lower and "config" not in request_lower):
+            return UseCase.deployment_only
+
+        # Check for full greenfield (deploy + test or test + docker)
+        if ("deploy" in request_lower or "docker" in request_lower) and "test" in request_lower:
+            return UseCase.full_greenfield
+
+        # Default to full_greenfield
+        return UseCase.full_greenfield
+
+    @staticmethod
+    def build_intent(user_request: str, answers: dict[str, Any]) -> Intent:
+        """
+        Build a complete Intent object from user answers.
+
+        Args:
+            user_request: Original user request
+            answers: Dict of user answers to clarifying questions
+
+        Returns:
+            Intent: Fully constructed Intent object
+
+        Raises:
+            ValueError: If required fields are missing for the classified use case
+        """
+        use_case = IntentIntake.classify_intent(user_request)
+
+        if use_case == UseCase.full_greenfield:
+            return IntentIntake._build_full_greenfield(answers)
+        elif use_case == UseCase.config_only:
+            return IntentIntake._build_config_only(answers)
+        elif use_case == UseCase.deployment_only:
+            return IntentIntake._build_deployment_only(answers)
+        elif use_case == UseCase.script_only:
+            return IntentIntake._build_script_only(answers)
+        elif use_case == UseCase.licensing_only:
+            return IntentIntake._build_licensing_only(answers)
+        else:
+            raise ValueError(f"Unknown use case: {use_case}")
+
+    @staticmethod
+    def _build_full_greenfield(answers: dict[str, Any]) -> Intent:
+        """Build a full_greenfield intent."""
+        port_count = int(answers.get("port_count", 2))
+        port_speed = answers.get("port_speed", "100GE")
+        protocols = answers.get("protocols", [])
+
+        # Build ports
+        ports = [
+            Port(name=f"te{i+1}", speed=port_speed)
+            for i in range(port_count)
+        ]
+
+        # Build test scenario
+        test_scenario = ScenarioSpec(
+            name=answers.get("test_name", "Test Scenario"),
+            description=answers.get("test_description", ""),
+            protocols=protocols,
+            port_count=port_count,
+            traffic_rate=answers.get("traffic_rate"),
+            duration_seconds=answers.get("duration_seconds"),
+        )
+
+        # Build deployment
+        deployment = Deployment(
+            method=DeploymentMethod(answers.get("deployment_method", "docker_compose")),
+            deployment_type=answers.get("deployment_type", "CP+DP"),
+            ports=ports,
+        )
+
+        return Intent(
+            use_case=UseCase.full_greenfield,
+            test_scenario=test_scenario,
+            deployment=deployment,
+        )
+
+    @staticmethod
+    def _build_config_only(answers: dict[str, Any]) -> Intent:
+        """Build a config_only intent."""
+        port_count = int(answers.get("port_count", 2))
+        protocols = answers.get("protocols", [])
+        port_locations = answers.get("port_locations", [])
+
+        # Parse port locations
+        if isinstance(port_locations, str):
+            port_locations = [loc.strip() for loc in port_locations.split(",")]
+
+        ports = []
+        for i, location in enumerate(port_locations):
+            ports.append(Port(name=f"eth{i+1}", location=location))
+
+        # If not enough ports from locations, add more
+        while len(ports) < port_count:
+            ports.append(Port(name=f"eth{len(ports)+1}"))
+
+        # Build test scenario
+        test_scenario = ScenarioSpec(
+            name=answers.get("test_name", "Config Test"),
+            description=answers.get("test_description", ""),
+            protocols=protocols,
+            port_count=port_count,
+        )
+
+        # Build infrastructure
+        infrastructure = Infrastructure(
+            controller_url=answers.get("controller_url", "localhost:8443"),
+            ports=ports,
+        )
+
+        return Intent(
+            use_case=UseCase.config_only,
+            test_scenario=test_scenario,
+            infrastructure=infrastructure,
+        )
+
+    @staticmethod
+    def _build_deployment_only(answers: dict[str, Any]) -> Intent:
+        """Build a deployment_only intent."""
+        port_count = int(answers.get("port_count", 2))
+        port_speed = answers.get("port_speed", "100GE")
+
+        # Build ports
+        ports = [
+            Port(name=f"eth{i+1}", speed=port_speed)
+            for i in range(port_count)
+        ]
+
+        # Build deployment
+        deployment = Deployment(
+            method=DeploymentMethod(answers.get("deployment_method", "docker_compose")),
+            deployment_type=answers.get("deployment_type", "CP+DP"),
+            ports=ports,
+        )
+
+        return Intent(
+            use_case=UseCase.deployment_only,
+            deployment=deployment,
+        )
+
+    @staticmethod
+    def _build_script_only(answers: dict[str, Any]) -> Intent:
+        """Build a script_only intent."""
+        otg_config_path = answers.get("otg_config_path")
+        controller_url = answers.get("controller_url", "localhost:8443")
+        port_locations = answers.get("port_locations", [])
+
+        # Parse port locations
+        if isinstance(port_locations, str):
+            port_locations = [loc.strip() for loc in port_locations.split(",")]
+
+        ports = []
+        for i, location in enumerate(port_locations):
+            ports.append(Port(name=f"port{i+1}", location=location))
+
+        # Build infrastructure
+        infrastructure = Infrastructure(
+            controller_url=controller_url,
+            ports=ports if ports else None,
+        )
+
+        return Intent(
+            use_case=UseCase.script_only,
+            otg_config_path=otg_config_path,
+            infrastructure=infrastructure,
+        )
+
+    @staticmethod
+    def _build_licensing_only(answers: dict[str, Any]) -> Intent:
+        """Build a licensing_only intent."""
+        port_count = int(answers.get("port_count", 2))
+        port_speed = answers.get("port_speed", "100GE")
+        protocols = answers.get("protocols", [])
+
+        # Build licensing
+        licensing = Licensing(
+            port_count=port_count,
+            port_speed=port_speed,
+            protocols=protocols,
+            session_count=answers.get("session_count"),
+            license_tier=answers.get("license_tier", "Developer"),
+        )
+
+        return Intent(
+            use_case=UseCase.licensing_only,
+            licensing=licensing,
+        )

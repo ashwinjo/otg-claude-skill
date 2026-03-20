@@ -18,6 +18,7 @@ from src.orchestrator.intent import (
     Licensing,
     Flags,
     IntentValidator,
+    IntentIntake,
 )
 
 
@@ -492,3 +493,78 @@ class TestIntentMultipleUseCase:
         intent = Intent(**intent_dict)
         assert intent.include_licensing is True
         assert intent.licensing.session_count == 4
+
+
+class TestIntentIntake:
+    """Test IntentIntake classification and intent building."""
+
+    def test_intent_intake_classifies_full_greenfield(self):
+        """IntentIntake should classify 'Create BGP test with Docker deployment' as FULL_GREENFIELD."""
+        user_request = "Create BGP test with Docker deployment"
+        use_case = IntentIntake.classify_intent(user_request)
+        assert use_case == UseCase.full_greenfield
+
+    def test_intent_intake_classifies_config_only(self):
+        """IntentIntake should classify 'Create config and script' as CONFIG_ONLY."""
+        user_request = "Create config and script for existing setup"
+        use_case = IntentIntake.classify_intent(user_request)
+        assert use_case == UseCase.config_only
+
+    def test_intent_intake_classifies_deployment_only(self):
+        """IntentIntake should classify 'Deploy infrastructure' as DEPLOYMENT_ONLY."""
+        user_request = "Deploy infrastructure using containerlab"
+        use_case = IntentIntake.classify_intent(user_request)
+        assert use_case == UseCase.deployment_only
+
+    def test_intent_intake_classifies_script_only(self):
+        """IntentIntake should classify 'Script for existing' as SCRIPT_ONLY."""
+        user_request = "Create test script for existing OTG"
+        use_case = IntentIntake.classify_intent(user_request)
+        assert use_case == UseCase.script_only
+
+    def test_intent_intake_classifies_licensing_only(self):
+        """IntentIntake should classify 'Check license' as LICENSING_ONLY."""
+        user_request = "Check licensing and license requirements"
+        use_case = IntentIntake.classify_intent(user_request)
+        assert use_case == UseCase.licensing_only
+
+    def test_intent_intake_builds_intent_from_answers(self):
+        """IntentIntake should build complete Intent from user answers."""
+        user_request = "Create BGP test with Docker deployment"
+        answers = {
+            "test_name": "BGP Convergence Test",
+            "test_description": "Test BGP convergence with 2 ports",
+            "protocols": ["BGP"],
+            "port_count": 2,
+            "deployment_method": "docker_compose",
+            "deployment_type": "CP+DP",
+            "port_speed": "100GE",
+            "traffic_rate": "1000 pps",
+            "duration_seconds": 30,
+        }
+        intent = IntentIntake.build_intent(user_request, answers)
+        assert isinstance(intent, Intent)
+        assert intent.use_case == UseCase.full_greenfield
+        assert intent.test_scenario.name == "BGP Convergence Test"
+        assert intent.test_scenario.port_count == 2
+        assert intent.deployment.method == DeploymentMethod.docker_compose
+        assert len(intent.deployment.ports) == 2
+        assert intent.deployment.ports[0].speed == "100GE"
+
+    def test_intent_intake_builds_config_only_intent(self):
+        """IntentIntake should build config_only intent from answers."""
+        user_request = "Create config for existing setup"
+        answers = {
+            "test_name": "BGP Config Test",
+            "test_description": "Config for existing deployment",
+            "protocols": ["BGP"],
+            "port_count": 2,
+            "controller_url": "localhost:8443",
+            "port_locations": ["te1:5555", "te2:5556"],
+        }
+        intent = IntentIntake.build_intent(user_request, answers)
+        assert isinstance(intent, Intent)
+        assert intent.use_case == UseCase.config_only
+        assert intent.test_scenario.name == "BGP Config Test"
+        assert intent.infrastructure.controller_url == "localhost:8443"
+        assert len(intent.infrastructure.ports) == 2
