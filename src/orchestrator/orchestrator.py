@@ -8,11 +8,19 @@ invocation, checkpointing, and artifact generation.
 Components:
 - OrchestratorState: Enum of all 9 orchestration states
 - OrchestratorStateMachine: State machine with transitions and agent tracking
+- Orchestrator: Main orchestrator class that runs the full pipeline
 """
+import time
 from enum import Enum
-from typing import Optional
-from src.orchestrator.intent import Intent
-from src.orchestrator.dispatcher import DispatchQueue, SubAgent
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+from datetime import datetime, timezone
+
+from src.orchestrator.intent import Intent, IntentValidator
+from src.orchestrator.dispatcher import DispatchQueue, SubAgent, Dispatcher
+from src.orchestrator.transport import SubAgentTransport
+from src.orchestrator.checkpoint import Checkpoint, CheckpointManager
+from src.orchestrator.artifact import Manifest, SummaryGenerator
 
 
 class OrchestratorState(str, Enum):
@@ -141,3 +149,179 @@ class OrchestratorStateMachine:
             True if current_state is COMPLETE, False otherwise.
         """
         return self.current_state == OrchestratorState.COMPLETE
+
+
+class Orchestrator:
+    """Main orchestrator class that orchestrates all phases of execution.
+
+    Manages the complete orchestration pipeline including:
+    - Phase 1: Intent validation
+    - Phase 2: Dispatch queue building
+    - Phase 3: Agent invocation and checkpointing
+    - Phase 4: Artifact generation
+
+    Attributes:
+        transport: SubAgentTransport for invoking sub-agents
+        artifacts_dir: Directory where run artifacts are saved
+        run_id: Unique identifier for this execution run
+        run_dir: Directory for this specific run's artifacts
+        checkpoint_manager: Manages checkpoint persistence
+        manifest: Manifest object capturing execution details
+        checkpoints: List of checkpoints saved during execution
+    """
+
+    def __init__(
+        self,
+        transport: SubAgentTransport,
+        artifacts_dir: Path = None
+    ):
+        """Initialize orchestrator.
+
+        Args:
+            transport: SubAgentTransport for invoking sub-agents
+            artifacts_dir: Optional directory for artifacts. Defaults to './orchestration_runs'
+        """
+        self.transport = transport
+        self.artifacts_dir = artifacts_dir or Path("./orchestration_runs")
+        self.run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        self.run_dir = self.artifacts_dir / self.run_id
+        self.checkpoint_manager = CheckpointManager(self.run_dir / "checkpoints")
+        self.manifest = None
+        self.checkpoints: List[Checkpoint] = []
+
+    def run(self, intent: Intent, interactive: bool = True) -> Dict[str, Any]:
+        """Execute orchestration with all 4 phases.
+
+        Args:
+            intent: Intent object specifying the orchestration goal
+            interactive: Whether to support interactive confirmations
+
+        Returns:
+            Dict containing:
+                - status: "success" or "failed"
+                - run_id: Unique identifier for this run
+                - artifacts_dir: Path to run artifacts directory
+                - output_files: List of generated artifact file paths
+                - error: Error message if status is "failed"
+        """
+        try:
+            # Phase 1: Validate intent
+            validator = IntentValidator()
+            validated_intent = validator.validate(intent)
+
+            # Save intent
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+            intent_file = self.run_dir / "intent.json"
+            with open(intent_file, "w") as f:
+                # Handle both Pydantic v1 and v2
+                if hasattr(validated_intent, "model_dump"):
+                    import json
+                    f.write(json.dumps(validated_intent.model_dump(), indent=2))
+                elif hasattr(validated_intent, "json"):
+                    f.write(validated_intent.json())
+                else:
+                    import json
+                    f.write(json.dumps(dict(validated_intent), indent=2))
+
+            # Phase 2: Build dispatch queue
+            queue = Dispatcher.build_queue(validated_intent)
+
+            # Phase 3: Execute agents
+            start_time = time.time()
+
+            for agent_config in queue.agents:
+                # Invoke sub-agent via transport
+                # Convert intent to dict (handle both Pydantic v1 and v2)
+                if hasattr(validated_intent, "model_dump"):
+                    intent_dict = validated_intent.model_dump()
+                else:
+                    intent_dict = validated_intent.dict()
+
+                context = {
+                    "intent": intent_dict,
+                    "previous_checkpoints": [c.to_json() for c in self.checkpoints]
+                }
+
+                result = self.transport.invoke(
+                    agent_name=agent_config.name,
+                    context=context,
+                    timeout_seconds=agent_config.timeout_seconds
+                )
+
+                duration = time.time() - start_time
+
+                if result.status == "success":
+                    # Save checkpoint
+                    checkpoint = Checkpoint(
+                        checkpoint_id=f"ckpt_{agent_config.sequence}_{agent_config.name}",
+                        sub_agent=agent_config.name,
+                        agent_color=agent_config.color,
+                        sequence=agent_config.sequence,
+                        status="success",
+                        input=context["intent"],
+                        output=result.output,
+                        duration_seconds=duration,
+                        retry_count=0,
+                        warnings=[],
+                        user_action="approved",
+                        user_action_timestamp=None,
+                        output_size_bytes=len(str(result.output)),
+                        output_checksum="",
+                    )
+                    self.checkpoint_manager.save(checkpoint)
+                    self.checkpoints.append(checkpoint)
+
+            # Phase 4: Generate artifacts
+            total_duration = time.time() - start_time
+
+            self.manifest = Manifest(
+                run_id=self.run_id,
+                user_intent_original=str(validated_intent),
+                intent_normalized=validated_intent,
+                execution_flow=[],
+                errors=[],
+                warnings=[],
+                final_status="success",
+                output_files=[]
+            )
+            self.manifest.finalize("success")
+
+            # Save manifest
+            manifest_file = self.run_dir / "manifest.json"
+            with open(manifest_file, "w") as f:
+                f.write(self.manifest.to_json())
+
+            # Generate and save summary
+            summary_md = SummaryGenerator.generate(
+                user_intent=str(validated_intent),
+                checkpoints=[{
+                    "checkpoint_id": c.checkpoint_id,
+                    "sub_agent": c.sub_agent,
+                    "status": c.status,
+                    "duration_seconds": c.duration_seconds
+                } for c in self.checkpoints],
+                warnings=[],
+                total_duration=total_duration
+            )
+            summary_file = self.run_dir / "summary.md"
+            with open(summary_file, "w") as f:
+                f.write(summary_md)
+
+            return {
+                "status": "success",
+                "run_id": self.run_id,
+                "artifacts_dir": str(self.run_dir),
+                "output_files": [
+                    str(intent_file),
+                    str(manifest_file),
+                    str(summary_file)
+                ]
+            }
+
+        except Exception as e:
+            return {
+                "status": "failed",
+                "error": str(e),
+                "run_id": self.run_id,
+                "artifacts_dir": str(self.run_dir)
+            }

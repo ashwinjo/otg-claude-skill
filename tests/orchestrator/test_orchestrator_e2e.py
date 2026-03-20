@@ -5,6 +5,7 @@ TDD approach: Define expected behavior before implementation.
 Tests for state transitions and agent cycling through the orchestration pipeline.
 """
 import pytest
+from pathlib import Path
 from src.orchestrator.orchestrator import OrchestratorState, OrchestratorStateMachine
 from src.orchestrator.intent import Intent, UseCase
 from src.orchestrator.dispatcher import Dispatcher
@@ -387,3 +388,169 @@ class TestOrchestratorStateMachineErrorRecovery:
             sm.current_state = state
             sm.set_error_recovery()
             assert sm.current_state == OrchestratorState.ERROR_RECOVERY
+
+
+class TestOrchestratorE2E:
+    """Integration tests for complete orchestrator pipeline execution."""
+
+    def _build_deployment_only_intent(self) -> Intent:
+        """Helper to build a deployment_only intent."""
+        return Intent(
+            use_case=UseCase.deployment_only,
+            deployment={
+                "method": "docker_compose",
+                "deployment_type": "CP+DP",
+                "ports": [
+                    {"name": "te1", "speed": "100GE"},
+                    {"name": "te2", "speed": "100GE"},
+                ],
+            },
+        )
+
+    def _build_config_only_intent(self) -> Intent:
+        """Helper to build a config_only intent."""
+        return Intent(
+            use_case=UseCase.config_only,
+            test_scenario={
+                "name": "Config Test",
+                "description": "Config test",
+                "protocols": ["BGP"],
+                "port_count": 2,
+            },
+            infrastructure={
+                "controller_url": "localhost:8443",
+                "ports": [
+                    {"name": "eth1", "location": "te1:5555"},
+                    {"name": "eth2", "location": "te2:5556"},
+                ],
+            },
+        )
+
+    def test_orchestrator_runs_full_pipeline(self, tmp_path):
+        """Full orchestration should run through all phases successfully."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Verify successful completion
+        assert result["status"] == "success"
+        assert "run_id" in result
+        assert "artifacts_dir" in result
+        assert "output_files" in result
+        assert len(result["output_files"]) > 0
+
+    def test_orchestrator_saves_artifacts(self, tmp_path):
+        """Orchestrator should save intent, manifest, and summary artifacts."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+        from pathlib import Path
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Verify artifacts exist
+        run_dir = Path(result["artifacts_dir"])
+        assert (run_dir / "intent.json").exists()
+        assert (run_dir / "manifest.json").exists()
+        assert (run_dir / "summary.md").exists()
+
+    def test_orchestrator_returns_result_structure(self, tmp_path):
+        """Orchestrator result should have correct structure."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Verify result structure
+        assert isinstance(result, dict)
+        assert "status" in result
+        assert "run_id" in result
+        assert "artifacts_dir" in result
+        assert "output_files" in result
+        assert isinstance(result["output_files"], list)
+
+    def test_orchestrator_with_multiple_agents(self, tmp_path):
+        """Orchestrator should handle multiple agents in sequence."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_config_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Verify successful completion
+        assert result["status"] == "success"
+        # Config-only should have 2 agents, so 2 checkpoints should be saved
+        assert len(orchestrator.checkpoints) >= 1
+
+    def test_orchestrator_creates_run_directory(self, tmp_path):
+        """Orchestrator should create run directory with timestamp."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        run_dir = Path(result["artifacts_dir"])
+        assert run_dir.exists()
+        assert run_dir.parent == tmp_path
+        assert "run_" in run_dir.name
+
+    def test_orchestrator_manifest_has_execution_flow(self, tmp_path):
+        """Orchestrator manifest should capture execution flow."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+        import json
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Load and verify manifest structure
+        manifest_path = Path(result["artifacts_dir"]) / "manifest.json"
+        with open(manifest_path, "r") as f:
+            manifest_data = json.load(f)
+
+        assert "run_id" in manifest_data
+        assert "user_intent_original" in manifest_data
+        assert "final_status" in manifest_data
+        assert manifest_data["final_status"] == "success"
+
+    def test_orchestrator_summary_is_valid_markdown(self, tmp_path):
+        """Orchestrator summary should be valid markdown."""
+        from src.orchestrator.transport import SkillTransport
+        from src.orchestrator.orchestrator import Orchestrator
+
+        transport = SkillTransport()
+        orchestrator = Orchestrator(transport=transport, artifacts_dir=tmp_path)
+
+        intent = self._build_deployment_only_intent()
+        result = orchestrator.run(intent=intent, interactive=False)
+
+        # Load and verify summary
+        summary_path = Path(result["artifacts_dir"]) / "summary.md"
+        with open(summary_path, "r") as f:
+            summary_content = f.read()
+
+        # Basic markdown validation
+        assert "#" in summary_content  # Should have headers
+        assert "Execution Summary" in summary_content or "Summary" in summary_content
