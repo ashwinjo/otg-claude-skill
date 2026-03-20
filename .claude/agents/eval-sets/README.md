@@ -181,6 +181,92 @@ Track agent performance over time:
 
 ---
 
+## Agent Colors (Verified Unique)
+
+```
+🔵 Blue       → ixia-c-deployment-agent
+🟢 Green      → otg-config-generator-agent
+🟣 Purple     → snappi-script-generator-agent
+🟠 Orange     → keng-licensing-agent
+```
+
+---
+
+## Eval Question Breakdown
+
+### 🔵 **ixia-c-deployment-agent** (Infrastructure)
+| Q | Category | Focus |
+|---|----------|-------|
+| 1 | Happy Path | Docker Compose deployment + port mapping |
+| 2 | Containerlab | Containerlab topology with LAG + ISIS |
+| 3 | Error Handling | Conflicting deployment requirements |
+| 4 | Integration | Port mapping format alignment |
+| 5 | Edge Case | Health check failure (controller unreachable) |
+
+### 🟢 **otg-config-generator-agent** (Intent→Config)
+| Q | Category | Focus |
+|---|----------|-------|
+| 1 | Happy Path | BGP convergence test translation |
+| 2 | Infrastructure | Port location injection validation |
+| 3 | Complexity | Multi-protocol (BGP+ISIS+LACP) config |
+| 4 | Error Handling | Vague/ambiguous user intent |
+| 5 | Validation | Assertion feasibility & timeout realism |
+
+### 🟣 **snappi-script-generator-agent** (Config→Script)
+| Q | Category | Focus |
+|---|----------|-------|
+| 1 | Happy Path | Standalone Python script generation |
+| 2 | Error Handling | Connection failure to controller |
+| 3 | Protocol Setup | BGP state polling & convergence timeout |
+| 4 | Metrics | Traffic assertion & no-loss validation |
+| 5 | Cleanup | Resource cleanup & JSON reporting |
+
+### 🟠 **keng-licensing-agent** (Cost Estimation)
+| Q | Category | Focus |
+|---|----------|-------|
+| 1 | Happy Path | POC licensing (2×10GE, traffic-only) |
+| 2 | Comparison | Developer/Team/System tier costs |
+| 3 | Edge Case | High protocol session count (64 BGP) |
+| 4 | Optimization | Cost reduction suggestions |
+| 5 | Compliance | SE disclaimer & legal accuracy |
+
+---
+
+## Quick Test & Full Evaluation
+
+### Quick Test
+```bash
+# Run one eval question for an agent
+@ixia-c-deployment-agent Deploy Ixia-c for BGP testing with Docker Compose...
+# Compare output to expected_outputs + success_criteria in eval-sets/ixia-c-deployment-agent-eval.json
+```
+
+### Full Evaluation
+```bash
+# Test all 5 questions for each agent
+# Track pass/fail rate per category
+# Document any failures or improvements needed
+```
+
+### With LLM-as-Judge (Future)
+```python
+# Parse eval set JSON
+# Invoke agent for each question
+# Use Claude/LLM to judge outputs
+# Generate performance report with pass rate, score, notes
+```
+
+---
+
+## Key Eval Insights
+
+✅ **Coverage:** Each agent tested on happy path, error handling, edge cases, and integration points
+✅ **Specificity:** Questions are concrete scenarios, not generic (e.g., "2×100GE + 8 BGP sessions" not "test licensing")
+✅ **Measurability:** Success criteria are objective and verifiable
+✅ **Completeness:** 20 total questions ensure thorough agent validation
+
+---
+
 ## Version History
 
 - **v1.0** (2026-03-19): Initial eval sets, 5 questions per agent, 20 total questions
