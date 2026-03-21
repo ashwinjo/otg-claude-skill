@@ -131,40 +131,161 @@ User: "Can this IxNetwork OSPF test be converted to KENG?"
 
 ---
 
+## Claude Commands (16 Total)
+
+This plugin provides 16 Claude Commands organized in 3 tiers for different user needs.
+
+### 🆘 Help & Discovery (Section C) — 7 commands
+Perfect for learning the plugin:
+- `/kengotg-keng-help` — Plugin overview & quick start
+- `/kengotg-show-skills` — See all 5 skills
+- `/kengotg-show-agents` — See all 4 intelligent agents
+- `/kengotg-show-architecture` — Understand system design
+- `/kengotg-examples` — 8 real-world workflow examples
+- `/kengotg-skill-help` — Detailed skill documentation
+- `/kengotg-eval-agents` — Agent evaluation framework (20 test scenarios)
+
+**Start here:** `/kengotg-keng-help`
+
+### ⚡ Quick Shortcuts (Section A) — 5 commands
+Fast access to skills with sensible defaults:
+- `/kengotg-otg-gen` — Quick OTG config generation
+- `/kengotg-snappi-script` — Quick Snappi script generation
+- `/kengotg-deploy-ixia` — Quick Ixia-c deployment
+- `/kengotg-licensing` — Quick licensing check
+- `/kengotg-migrate-ix` — Quick IxNetwork migration
+
+**Use when:** Want quick defaults without customization
+
+### 🔄 End-to-End Workflows (Section B) — 4 commands
+Complete orchestration of multiple agents:
+- `/kengotg-create-test` — Full pipeline (deploy→config→script)
+- `/kengotg-quick-bgp-test` — BGP test shortcut with optimizations
+- `/kengotg-migrate-and-run` — IxNetwork migration + execution
+- `/kengotg-check-licensing` — Complete licensing evaluation workflow
+
+**Use when:** Need full workflow, orchestrating multiple steps
+
+---
+
 ## Project Structure
 
 ```
 kengotg/
-├── README.md                              This file
+├── README.md                              This file (project overview)
+├── AGENT_ORCHESTRATION_PLAN.md            Detailed orchestration patterns
 ├── openapi.yaml                           OTG schema reference (required by skills)
 ├── bgp_keng.json                          Example OTG config output
 │
-└── .claude/skills/
-    ├── INDEX.md                           ← Skill discovery guide (START HERE)
+└── .claude/
+    ├── commands/                          Claude Commands (16 total, ~150KB)
+    │   ├── COMMANDS.md                    Command index & navigation
+    │   ├── kengotg-*.md                   16 command files (organized by section)
+    │   │
+    │   ├─ Section C: Help & Discovery (7 commands)
+    │   │  ├── kengotg-keng-help.md
+    │   │  ├── kengotg-show-skills.md
+    │   │  ├── kengotg-show-agents.md
+    │   │  ├── kengotg-show-architecture.md
+    │   │  ├── kengotg-examples.md
+    │   │  ├── kengotg-skill-help.md
+    │   │  └── kengotg-eval-agents.md
+    │   │
+    │   ├─ Section A: Skill Shortcuts (5 commands)
+    │   │  ├── kengotg-otg-gen.md
+    │   │  ├── kengotg-snappi-script.md
+    │   │  ├── kengotg-deploy-ixia.md
+    │   │  ├── kengotg-licensing.md
+    │   │  └── kengotg-migrate-ix.md
+    │   │
+    │   └─ Section B: Workflows (4 commands)
+    │      ├── kengotg-create-test.md
+    │      ├── kengotg-quick-bgp-test.md
+    │      ├── kengotg-migrate-and-run.md
+    │      └── kengotg-check-licensing.md
     │
-    ├── ixnetwork-to-keng-converter/       Skill #1
-    │   ├── SKILL.md                       Technical reference
-    │   ├── README.md                      User guide + troubleshooting
-    │   ├── PRODUCTION_CHECKLIST.md        QA & deployment guide
-    │   └── evals/                         Test cases (4 scenarios)
+    ├── agents/                            Intelligent subagents (4 agents, 20 evals)
+    │   ├── README.md                      Agent orchestration overview
+    │   ├── ixia-c-deployment-agent.md     Infrastructure provisioner
+    │   ├── otg-config-generator-agent.md  Intent → config translator
+    │   ├── snappi-script-generator-agent.md Config → script executor
+    │   ├── keng-licensing-agent.md        Licensing advisor
+    │   └── eval-sets/                     Evaluation framework
+    │       ├── README.md
+    │       ├── ixia-c-deployment-agent-eval.json
+    │       ├── otg-config-generator-agent-eval.json
+    │       ├── snappi-script-generator-agent-eval.json
+    │       └── keng-licensing-agent-eval.json
     │
-    ├── otg-config-generator/              Skill #2
-    │   ├── SKILL.md
-    │   └── README.md
-    │
-    ├── snappi-script-generator/           Skill #3
-    │   ├── SKILL.md
-    │   ├── README.md
-    │   └── references/                    Protocol examples, assertions, GitHub snippets
-    │
-    ├── ixia-c-deployment/                 Skill #4
-    │   ├── SKILL.md                       Docker Compose, Containerlab, K8s options
-    │   └── README.md                      (optional)
-    │
-    └── keng-licensing/                    Skill #5
-        ├── SKILL.md                       License types, cost formulas, recommendations
-        └── evals.json                     Test cases (8 scenarios)
+    └── skills/                            Production-ready skills (5 skills, ~100KB)
+        ├── INDEX.md                       Skill discovery guide (START HERE)
+        │
+        ├── ixnetwork-to-keng-converter/   Skill #1: IxNetwork → OTG
+        │   ├── SKILL.md                   Technical reference
+        │   ├── README.md                  User guide + troubleshooting
+        │   ├── PRODUCTION_CHECKLIST.md
+        │   └── evals/                     Test cases (4 scenarios)
+        │
+        ├── otg-config-generator/          Skill #2: Intent → OTG JSON
+        │   ├── SKILL.md
+        │   └── README.md
+        │
+        ├── snappi-script-generator/       Skill #3: OTG JSON → Python
+        │   ├── SKILL.md
+        │   ├── README.md
+        │   └── references/                Protocol examples & snippets
+        │
+        ├── ixia-c-deployment/             Skill #4: Infrastructure provisioner
+        │   ├── SKILL.md
+        │   └── README.md
+        │
+        └── keng-licensing/                Skill #5: Licensing advisor
+            ├── SKILL.md
+            └── evals.json                 Test cases (8 scenarios)
 ```
+
+---
+
+## How to Use This Plugin
+
+### Three Ways to Access Features
+
+**Option 1: Claude Commands (Recommended for Most Users)**
+```bash
+# Help & learning
+/kengotg-keng-help        ← Start here
+
+# Quick tests
+/kengotg-quick-bgp-test 2 ports   ← BGP with defaults
+
+# Full workflows
+/kengotg-create-test      ← Deploy + Config + Script
+/kengotg-migrate-and-run  ← IxNetwork migration + execution
+```
+
+**Option 2: Skill Shortcuts (Quick with Sensible Defaults)**
+```bash
+# Fast, with good defaults
+/kengotg-otg-gen          ← Generate config quickly
+/kengotg-deploy-ixia      ← Deploy with defaults
+```
+
+**Option 3: Direct Skills & Agents (Full Control)**
+```bash
+# When you need complete customization
+/ixnetwork-to-keng-converter    ← IxNetwork migration (detailed)
+@ixia-c-deployment-agent       ← Orchestrate agents directly
+```
+
+**Choose commands for:**
+- Learning the plugin
+- Quick one-off tests
+- Following recommended workflows
+
+**Choose skills/agents for:**
+- Advanced customization
+- Complex scenarios
+- Integration with other systems
 
 ---
 
