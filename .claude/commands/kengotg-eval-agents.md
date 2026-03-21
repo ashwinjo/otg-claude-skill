@@ -1,5 +1,5 @@
 ---
-name: eval-agents
+name: kengotg-eval-agents
 description: Agent evaluation framework and test cases
 disable-model-invocation: false
 allowed-tools: []
@@ -528,8 +528,8 @@ cat .claude/skills/*/evals/evals.json
 
 ## See Also
 
-- `/show-agents` — Agent responsibilities
-- `/show-architecture` — Orchestration patterns
-- `/examples` — Real-world test scenarios
-- `/skill-help` — Detailed skill documentation
+- `/kengotg-show-agents` — Agent responsibilities
+- `/kengotg-show-architecture` — Orchestration patterns
+- `/kengotg-examples` — Real-world test scenarios
+- `/kengotg-skill-help` — Detailed skill documentation
 - `.claude/agents/eval-sets/README.md` — Evaluation framework guide

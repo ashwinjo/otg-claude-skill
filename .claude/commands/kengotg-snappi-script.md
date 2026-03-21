@@ -1,5 +1,5 @@
 ---
-name: snappi-script
+name: kengotg-snappi-script
 description: Quick Snappi test script generation
 disable-model-invocation: false
 allowed-tools: []
@@ -168,7 +168,7 @@ assert bgp_convergence_time < 20  # seconds
 
 ## Tips
 
-- **Infrastructure first:** Deploy with `/deploy-ixia` before generating scripts
+- **Infrastructure first:** Deploy with `/kengotg-deploy-ixia` before generating scripts
 - **Config validation:** Review OTG config before script generation
 - **Test locally:** Always run scripts locally first before CI/CD
 - **Save reports:** JSON reports are auto-saved with timestamps
@@ -202,7 +202,7 @@ assert bgp_convergence_time < 20  # seconds
 
 ## See Also
 
-- `/otg-gen` — Generate OTG config first
-- `/deploy-ixia` — Deploy infrastructure
-- `/show-skills` — Skill overview
-- `/examples` — More workflow examples
+- `/kengotg-otg-gen` — Generate OTG config first
+- `/kengotg-deploy-ixia` — Deploy infrastructure
+- `/kengotg-show-skills` — Skill overview
+- `/kengotg-examples` — More workflow examples

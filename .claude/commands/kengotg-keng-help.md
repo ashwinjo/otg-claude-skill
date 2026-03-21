@@ -1,5 +1,5 @@
 ---
-name: keng-help
+name: kengotg-keng-help
 description: Plugin overview, quick start guide, and help
 disable-model-invocation: false
 allowed-tools: []
@@ -75,7 +75,7 @@ Understand how agents coordinate to build your test setup.
 | **ixia-c-deployment** | Infrastructure provisioner | Setting up Ixia-c |
 | **keng-licensing** | Cost & licensing advisor | Planning budget/licenses |
 
-Type `/show-skills` for detailed descriptions and quick start examples.
+Type `/kengotg-show-skills` for detailed descriptions and quick start examples.
 
 ---
 
@@ -90,7 +90,7 @@ Agents orchestrate multi-step workflows:
 | 🟣 **snappi-script-generator-agent** | Config → Script executor | `@snappi-script-generator-agent Generate...` |
 | 🟠 **keng-licensing-agent** | Licensing & cost advisor | `@keng-licensing-agent What license...?` |
 
-Type `/show-agents` for detailed responsibilities and invocation patterns.
+Type `/kengotg-show-agents` for detailed responsibilities and invocation patterns.
 
 ---
 
@@ -126,7 +126,7 @@ Type `/show-agents` for detailed responsibilities and invocation patterns.
 ```
 **Output:** otg_config.json, test_bgp.py
 
-Type `/examples` to see more workflow patterns.
+Type `/kengotg-examples` to see more workflow patterns.
 
 ---
 
@@ -195,7 +195,7 @@ Explore the plugin:
 
 ### "Ports don't align"
 Check that deployment port mapping matches config port locations.
-Use `/show-architecture` to understand data flow.
+Use `/kengotg-show-architecture` to understand data flow.
 
 ### "Script won't run"
 Verify Python syntax: `python test_xxx.py --help`
@@ -215,7 +215,7 @@ Check controller health: `curl -k https://localhost:8443/config`
 
 ## Next Steps
 
-1. **Start small:** Try `/examples` to see workflow patterns
+1. **Start small:** Try `/kengotg-examples` to see workflow patterns
 2. **Choose your path:** Greenfield, existing infra, or licensing check
 3. **Invoke agents:** Use `@agent-name` syntax
 4. **Review outputs:** Check generated configs and scripts
@@ -249,11 +249,11 @@ cat .claude/agents/eval-sets/*.json
 
 ## Support
 
-- **Commands:** Type `/keng-help` for this help
-- **Skills:** Type `/show-skills` to list all 5 skills
-- **Agents:** Type `/show-agents` to understand orchestration
-- **Examples:** Type `/examples` for workflow patterns
-- **Architecture:** Type `/show-architecture` for diagrams
+- **Commands:** Type `/kengotg-keng-help` for this help
+- **Skills:** Type `/kengotg-show-skills` to list all 5 skills
+- **Agents:** Type `/kengotg-show-agents` to understand orchestration
+- **Examples:** Type `/kengotg-examples` for workflow patterns
+- **Architecture:** Type `/kengotg-show-architecture` for diagrams
 
 ---
 

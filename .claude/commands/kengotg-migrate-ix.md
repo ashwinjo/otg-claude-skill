@@ -1,5 +1,5 @@
 ---
-name: migrate-ix
+name: kengotg-migrate-ix
 description: Quick IxNetwork migration to OTG/KENG format
 disable-model-invocation: false
 allowed-tools: []
@@ -284,18 +284,18 @@ Refine/enhance migrated config
 
 ## Next Steps
 
-1. **Run migration:** `/migrate-ix` with your IxNetwork config
+1. **Run migration:** `/kengotg-migrate-ix` with your IxNetwork config
 2. **Review report:** Check feasibility and conversions
-3. **Generate script:** `/snappi-script` to create test
+3. **Generate script:** `/kengotg-snappi-script` to create test
 4. **Test:** Run and compare with original
-5. **Refine:** Use `/otg-gen` to enhance if needed
+5. **Refine:** Use `/kengotg-otg-gen` to enhance if needed
 
 ---
 
 ## See Also
 
-- `/otg-gen` — Generate/enhance OTG config
-- `/snappi-script` — Convert to executable test
-- `/deploy-ixia` — Deploy Ixia-c infrastructure
-- `/show-skills` — Skill overview
-- `/examples` — More migration examples
+- `/kengotg-otg-gen` — Generate/enhance OTG config
+- `/kengotg-snappi-script` — Convert to executable test
+- `/kengotg-deploy-ixia` — Deploy Ixia-c infrastructure
+- `/kengotg-show-skills` — Skill overview
+- `/kengotg-examples` — More migration examples

@@ -1,5 +1,5 @@
 ---
-name: show-architecture
+name: kengotg-show-architecture
 description: Display orchestration architecture and workflow diagrams
 disable-model-invocation: false
 allowed-tools: []

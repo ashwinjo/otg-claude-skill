@@ -1,5 +1,5 @@
 ---
-name: show-agents
+name: kengotg-show-agents
 description: List all 4 intelligent subagents and their responsibilities
 disable-model-invocation: false
 allowed-tools: []

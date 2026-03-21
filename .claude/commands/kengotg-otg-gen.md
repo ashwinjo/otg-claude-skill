@@ -1,5 +1,5 @@
 ---
-name: otg-gen
+name: kengotg-otg-gen
 description: Quick OTG config generation from natural language
 disable-model-invocation: false
 allowed-tools: []
@@ -74,8 +74,8 @@ Create LAG failover test:
 ## Next Steps
 
 1. Review the generated `otg_config.json`
-2. Use `/snappi-script` to convert to executable Python
-3. Deploy infrastructure with `/deploy-ixia` if needed
+2. Use `/kengotg-snappi-script` to convert to executable Python
+3. Deploy infrastructure with `/kengotg-deploy-ixia` if needed
 4. Run the test
 
 ---
@@ -100,7 +100,7 @@ Create BGP test for Ixia-c at localhost:8443:
 
 ## See Also
 
-- `/show-skills` — Skill overview
-- `/snappi-script` — Convert config to executable script
-- `/deploy-ixia` — Deploy infrastructure first
-- `/examples` — More workflow examples
+- `/kengotg-show-skills` — Skill overview
+- `/kengotg-snappi-script` — Convert config to executable script
+- `/kengotg-deploy-ixia` — Deploy infrastructure first
+- `/kengotg-examples` — More workflow examples

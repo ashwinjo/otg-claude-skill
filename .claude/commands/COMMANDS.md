@@ -10,7 +10,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ### 🆘 Help & Overview
 
-#### `/keng-help`
+#### `/kengotg-keng-help`
 **Overview and quick start guide for the entire plugin.**
 
 - Plugin summary (what is KENG/OTG)
@@ -30,7 +30,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ### 🔍 Discovery Commands
 
-#### `/show-skills`
+#### `/kengotg-show-skills`
 **List all 5 production-ready skills with descriptions and use cases.**
 
 - 5 skills with emoji identifiers
@@ -44,7 +44,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ---
 
-#### `/show-agents`
+#### `/kengotg-show-agents`
 **List all 4 intelligent subagents and their responsibilities.**
 
 - 4 agents with colored circles (🔵🟢🟣🟠)
@@ -60,7 +60,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ---
 
-#### `/show-architecture`
+#### `/kengotg-show-architecture`
 **Display orchestration architecture and workflow diagrams.**
 
 - System architecture diagram (orchestrator → intent → agents)
@@ -79,7 +79,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ### 📚 Documentation Commands
 
-#### `/examples`
+#### `/kengotg-examples`
 **Workflow examples by use case (8 real-world scenarios).**
 
 - Example 1: Greenfield BGP test (deploy + config + script)
@@ -97,7 +97,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 
 ---
 
-#### `/skill-help`
+#### `/kengotg-skill-help`
 **Detailed skill documentation and quick reference.**
 
 Complete documentation for each skill:
@@ -120,7 +120,7 @@ Complete documentation for each skill:
 
 ---
 
-#### `/eval-agents`
+#### `/kengotg-eval-agents`
 **Agent evaluation framework and test cases.**
 
 - Framework overview (5 questions per agent, 20 total)
@@ -141,13 +141,13 @@ Complete documentation for each skill:
 
 | Command | Type | Purpose | Use When |
 |---------|------|---------|----------|
-| `/keng-help` | Overview | Plugin help & quick start | New user or general help |
-| `/show-skills` | Discovery | List 5 skills | Want to know available skills |
-| `/show-agents` | Discovery | List 4 agents | Want to understand orchestration |
-| `/show-architecture` | Discovery | Architecture diagrams | Want visual system design |
-| `/examples` | Documentation | Workflow scenarios | Need to use plugin for specific case |
-| `/skill-help` | Documentation | Detailed skill docs | Need in-depth skill documentation |
-| `/eval-agents` | Documentation | Evaluation framework | Want to understand testing/quality |
+| `/kengotg-keng-help` | Overview | Plugin help & quick start | New user or general help |
+| `/kengotg-show-skills` | Discovery | List 5 skills | Want to know available skills |
+| `/kengotg-show-agents` | Discovery | List 4 agents | Want to understand orchestration |
+| `/kengotg-show-architecture` | Discovery | Architecture diagrams | Want visual system design |
+| `/kengotg-examples` | Documentation | Workflow scenarios | Need to use plugin for specific case |
+| `/kengotg-skill-help` | Documentation | Detailed skill docs | Need in-depth skill documentation |
+| `/kengotg-eval-agents` | Documentation | Evaluation framework | Want to understand testing/quality |
 
 ---
 
@@ -182,11 +182,11 @@ Complete documentation for each skill:
 
 ### Section A: Essential Skill Shortcuts
 Commands for quick invocation of skills:
-- `/otg-gen` — Quick OTG config generation
-- `/snappi-script` — Quick script generation
-- `/deploy-ixia` — Quick Ixia-c deployment
-- `/licensing` — Quick licensing check
-- `/migrate-ix` — Quick IxNetwork migration
+- `/kengotg-otg-gen` — Quick OTG config generation
+- `/kengotg-snappi-script` — Quick script generation
+- `/kengotg-deploy-ixia` — Quick Ixia-c deployment
+- `/kengotg-licensing` — Quick licensing check
+- `/kengotg-migrate-ix` — Quick IxNetwork migration
 
 ### Section B: Workflow Commands
 Commands for full end-to-end workflows:
@@ -202,13 +202,13 @@ Commands for full end-to-end workflows:
 ```
 .claude/commands/
 ├── COMMANDS.md                    # This file (index)
-├── keng-help.md                   # Plugin help
-├── show-skills.md                 # Skill discovery
-├── show-agents.md                 # Agent discovery
-├── show-architecture.md           # Architecture diagrams
-├── examples.md                    # Workflow examples
-├── skill-help.md                  # Detailed skill docs
-└── eval-agents.md                 # Evaluation framework
+├── kengotg-keng-help.md                   # Plugin help
+├── kengotg-show-skills.md                 # Skill discovery
+├── kengotg-show-agents.md                 # Agent discovery
+├── kengotg-show-architecture.md           # Architecture diagrams
+├── kengotg-examples.md                    # Workflow examples
+├── kengotg-skill-help.md                  # Detailed skill docs
+└── kengotg-eval-agents.md                 # Evaluation framework
 ```
 
 ---

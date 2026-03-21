@@ -1,5 +1,5 @@
 ---
-name: show-skills
+name: kengotg-show-skills
 description: List all 5 available skills with descriptions and use cases
 disable-model-invocation: false
 allowed-tools: []
@@ -128,7 +128,7 @@ cat .claude/skills/keng-licensing/SKILL.md
    - Existing infrastructure → Configure + Generate Script
    - Licensing check → Run licensing skill alone
 
-3. **Use `/examples` to see workflow patterns**
-4. **Use `/show-agents` to understand orchestration**
+3. **Use `/kengotg-examples` to see workflow patterns**
+4. **Use `/kengotg-show-agents` to understand orchestration**
 
-See `/keng-help` for plugin overview and `/show-architecture` for workflow diagrams.
+See `/kengotg-keng-help` for plugin overview and `/kengotg-show-architecture` for workflow diagrams.

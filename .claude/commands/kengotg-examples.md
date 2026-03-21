@@ -1,5 +1,5 @@
 ---
-name: examples
+name: kengotg-examples
 description: Workflow examples by use case
 disable-model-invocation: false
 allowed-tools: []
@@ -330,11 +330,11 @@ Do you have IxNetwork config?
 
 ## See Also
 
-- `/show-skills` — Skill descriptions
-- `/show-agents` — Agent details
-- `/show-architecture` — Workflow diagrams
-- `/eval-agents` — Evaluation framework
-- `/keng-help` — Plugin overview
+- `/kengotg-show-skills` — Skill descriptions
+- `/kengotg-show-agents` — Agent details
+- `/kengotg-show-architecture` — Workflow diagrams
+- `/kengotg-eval-agents` — Evaluation framework
+- `/kengotg-keng-help` — Plugin overview
 
 For more examples and troubleshooting:
 ```bash

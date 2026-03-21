@@ -1,5 +1,5 @@
 ---
-name: deploy-ixia
+name: kengotg-deploy-ixia
 description: Quick Ixia-c deployment
 disable-model-invocation: false
 allowed-tools: []
@@ -243,8 +243,8 @@ docker network ls
 ## Next Steps
 
 1. **Verify deployment** — Check controller health
-2. **Create OTG config** — Use `/otg-gen` with port mapping
-3. **Generate test script** — Use `/snappi-script`
+2. **Create OTG config** — Use `/kengotg-otg-gen` with port mapping
+3. **Generate test script** — Use `/kengotg-snappi-script`
 4. **Run test** — Execute Python script
 
 ---
@@ -265,7 +265,7 @@ bash setup-ixia-c-bgp.sh clean
 
 ## See Also
 
-- `/otg-gen` — Generate OTG config using port mapping
-- `/snappi-script` — Create executable test script
-- `/show-skills` — Skill overview
-- `/examples` — More deployment examples
+- `/kengotg-otg-gen` — Generate OTG config using port mapping
+- `/kengotg-snappi-script` — Create executable test script
+- `/kengotg-show-skills` — Skill overview
+- `/kengotg-examples` — More deployment examples

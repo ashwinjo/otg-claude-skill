@@ -1,5 +1,5 @@
 ---
-name: skill-help
+name: kengotg-skill-help
 description: Detailed skill documentation and quick reference
 disable-model-invocation: false
 allowed-tools: []
@@ -518,11 +518,11 @@ Tier comparison (Developer, Team, System)
 
 ## See Also
 
-- `/show-skills` — Quick skill list
-- `/show-agents` — Agent orchestration
-- `/show-architecture` — Workflow diagrams
-- `/examples` — Real-world scenarios
-- `/eval-agents` — Evaluation framework
+- `/kengotg-show-skills` — Quick skill list
+- `/kengotg-show-agents` — Agent orchestration
+- `/kengotg-show-architecture` — Workflow diagrams
+- `/kengotg-examples` — Real-world scenarios
+- `/kengotg-eval-agents` — Evaluation framework
 
 For detailed technical specs:
 ```bash

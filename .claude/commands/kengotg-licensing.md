@@ -1,5 +1,5 @@
 ---
-name: licensing
+name: kengotg-licensing
 description: Quick KENG licensing check and cost estimation
 disable-model-invocation: false
 allowed-tools: []
@@ -215,18 +215,18 @@ System:    $500/month × 6 months = $3000 (unlimited)
 
 ## Next Steps
 
-1. **Get cost estimate:** Run `/licensing` with your requirements
+1. **Get cost estimate:** Run `/kengotg-licensing` with your requirements
 2. **Review options:** Compare tiers and upgrade paths
 3. **Contact SE:** Verify with Solutions Engineer before purchase
-4. **Deploy:** Use `/deploy-ixia` to set up infrastructure
-5. **Test:** Use `/otg-gen` and `/snappi-script` to create tests
+4. **Deploy:** Use `/kengotg-deploy-ixia` to set up infrastructure
+5. **Test:** Use `/kengotg-otg-gen` and `/kengotg-snappi-script` to create tests
 
 ---
 
 ## See Also
 
-- `/show-skills` — Skill overview
-- `/deploy-ixia` — Deploy infrastructure
-- `/otg-gen` — Create OTG config
-- `/snappi-script` — Generate test script
-- `/examples` — Workflow examples
+- `/kengotg-show-skills` — Skill overview
+- `/kengotg-deploy-ixia` — Deploy infrastructure
+- `/kengotg-otg-gen` — Create OTG config
+- `/kengotg-snappi-script` — Generate test script
+- `/kengotg-examples` — Workflow examples
