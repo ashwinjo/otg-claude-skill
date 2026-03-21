@@ -1,0 +1,100 @@
+{
+  "agent_name": "snappi-script-generator-agent",
+  "eval_set_version": "1.0",
+  "created": "2026-03-19",
+  "description": "Evaluation set for snappi-script-generator-agent: OTG config to executable Snappi script",
+  "total_questions": 5,
+  "eval_questions": [
+    {
+      "id": 1,
+      "category": "happy_path",
+      "question": "Generate a Snappi script from otg_config.json (BGP convergence test, 2 ports, 1000 pps, 30s timeout). Infrastructure: controller at http://localhost:8443, ports at location_1:5555 and location_2:5556.",
+      "expected_outputs": [
+        "Valid Python file (test_bgp_convergence.py or similar)",
+        "Script includes: imports, config creation, connection, BGP setup, traffic, assertions",
+        "Controller URL and port locations injected",
+        "Proper error handling (try/except/finally)",
+        "Executable as-is: python test_*.py"
+      ],
+      "success_criteria": [
+        "Python syntax is valid (no SyntaxError)",
+        "Snappi imports are present",
+        "Script is standalone (no external config files)",
+        "Can be run immediately without setup",
+        "At least 120+ lines (sufficient implementation)"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "error_handling",
+      "question": "The generated script attempts to connect to controller at localhost:8443 but connection fails (refused). How does the script handle this error?",
+      "expected_outputs": [
+        "Script catches connection error (ConnectionError, TimeoutError, or similar)",
+        "Script provides meaningful error message (not silent failure)",
+        "Script exits with non-zero status on connection failure",
+        "Cleanup code runs even on connection failure (finally block)"
+      ],
+      "success_criteria": [
+        "Exception is caught and handled",
+        "Error message is actionable (e.g., 'Check if controller is running')",
+        "Exit code indicates failure (exit(1))",
+        "No orphaned connections or resources"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "protocol_setup_verification",
+      "question": "Script must implement BGP session setup and verify neighbor state transitions (Idle → Connecting → Established). Verify the script includes state polling and timeout handling.",
+      "expected_outputs": [
+        "Script polls BGP neighbor state in a loop",
+        "Timeout is set (e.g., 60 seconds for convergence)",
+        "Script breaks on BGP Established state",
+        "Script warns or fails if timeout exceeded",
+        "BGP state is logged at each iteration"
+      ],
+      "success_criteria": [
+        "Protocol state is monitored",
+        "Convergence timeout is implemented",
+        "Script does not assume protocol is up",
+        "Logging/verbosity shows state transitions"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "metrics_and_assertions",
+      "question": "After BGP converges, script starts traffic (1000 pps, 512-byte packets). Script must collect metrics and assert no-loss (rx_frames == tx_frames). Verify assertion logic.",
+      "expected_outputs": [
+        "Traffic is started after protocol convergence",
+        "Script waits for traffic to settle (e.g., 10 seconds)",
+        "Metrics are collected (rx_frames, tx_frames, frame_loss)",
+        "Assertion: loss == 0 (or loss < threshold)",
+        "If assertion fails, error message includes actual metrics"
+      ],
+      "success_criteria": [
+        "Metrics collection is correct",
+        "Assertion is measurable (not subjective)",
+        "Failed assertion shows actual vs expected",
+        "Script does not continue if assertion fails"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "cleanup_and_reporting",
+      "question": "Script must clean up gracefully: stop traffic, release ports, close connections, and generate a report (success/failure, metrics, duration). Verify cleanup runs even on error.",
+      "expected_outputs": [
+        "Traffic is stopped (transmit state = stopped)",
+        "Connections are closed",
+        "Cleanup runs in finally block (executes even on error)",
+        "Report includes: test duration, pass/fail, metrics summary",
+        "Report is JSON or structured format"
+      ],
+      "success_criteria": [
+        "finally block executes on all code paths",
+        "No dangling connections after script exits",
+        "Report is machine-readable (JSON)",
+        "Duration and metrics are accurate",
+        "cleanup code does not itself raise exceptions"
+      ]
+    }
+  ]
+}

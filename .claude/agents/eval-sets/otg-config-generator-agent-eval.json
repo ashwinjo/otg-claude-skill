@@ -1,0 +1,99 @@
+{
+  "agent_name": "otg-config-generator-agent",
+  "eval_set_version": "1.0",
+  "created": "2026-03-19",
+  "description": "Evaluation set for otg-config-generator-agent: intent to OTG configuration translation",
+  "total_questions": 5,
+  "eval_questions": [
+    {
+      "id": 1,
+      "category": "happy_path",
+      "question": "Convert natural language to OTG config: 'Create a BGP convergence test with 2 ports, AS 65001 on te1 and AS 65002 on te2, bidirectional traffic at 1000 pps, 512-byte packets, convergence within 30 seconds.'",
+      "expected_outputs": [
+        "Valid otg_config.json with OTG schema v0.11.0+",
+        "2 ports defined: te1, te2",
+        "2 devices with BGP stack (one per port, different AS numbers)",
+        "2 flows (te1→te2 and te2→te1) at 1000 pps",
+        "Assertion for BGP convergence within 30 seconds"
+      ],
+      "success_criteria": [
+        "JSON is valid OTG schema format",
+        "Port count matches (2)",
+        "Bidirectional flows present",
+        "Protocol configuration includes correct AS numbers",
+        "Assertion is realistic and measurable"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "infrastructure_injection",
+      "question": "Given the same intent PLUS infrastructure context (controller: localhost:8443, port_mapping: {te1: location_1:5555, te2: location_2:5556}), generate OTG config. Verify port locations are injected correctly.",
+      "expected_outputs": [
+        "otg_config.json with port location values injected",
+        "te1 has location: 'location_1:5555'",
+        "te2 has location: 'location_2:5556'",
+        "port_alignment section confirms alignment: true",
+        "Config is ready for snappi-script-generator without modification"
+      ],
+      "success_criteria": [
+        "Port locations are injected into config",
+        "No placeholder or None values remain",
+        "Alignment validation passes",
+        "Output is immediately usable by next agent"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "multi_protocol_complexity",
+      "question": "Generate config for multi-protocol test: 'Create a mixed test with 4 ports, 2 BGP sessions (AS 65001, 65002), 2 ISIS adjacencies, LACP on ports 3-4, 500 pps traffic on each BGP pair, 100 pps on LACP pair.'",
+      "expected_outputs": [
+        "otg_config.json with 4 ports",
+        "BGP configuration (2 sessions, different AS)",
+        "ISIS configuration (2 adjacencies)",
+        "LACP configuration (LAG on ports 3-4)",
+        "Multiple flow definitions with appropriate rate for each protocol"
+      ],
+      "success_criteria": [
+        "All 3 protocols configured correctly",
+        "4 ports defined with no conflicts",
+        "Traffic rates respect per-protocol needs",
+        "No protocol interference (LAG and BGP not on same port)"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "error_handling_ambiguity",
+      "question": "User intent is vague: 'Create a test with some ports and protocols.' Agent must handle missing critical information (port count, speeds, protocol specifics). What is the agent's response?",
+      "expected_outputs": [
+        "Agent identifies missing information",
+        "Agent asks clarifying questions (port count, speeds, protocols)",
+        "Agent does NOT generate incomplete config",
+        "Clear list of what information is needed"
+      ],
+      "success_criteria": [
+        "Agent does not guess or hallucinate values",
+        "User is prompted for required details",
+        "Agent waits for input before proceeding",
+        "Clarification questions are specific, not generic"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "validation_and_assertions",
+      "question": "For a BGP test config, verify that the generated assertions are realistic and achievable. Include: route convergence, traffic no-loss, and protocol state assertions. How does the agent validate assertion feasibility?",
+      "expected_outputs": [
+        "Assertions present in config",
+        "Convergence timeout is realistic for BGP (30-60 seconds)",
+        "No-loss assertion is measurable (frames_rx == frames_tx)",
+        "Protocol state assertion (BGP UP, ISIS L2) is valid",
+        "Validation report confirms assertion feasibility"
+      ],
+      "success_criteria": [
+        "All assertions are achievable in practice",
+        "Timeout values are protocol-appropriate",
+        "Assertions are measurable (not subjective)",
+        "Agent warns if assertion is unrealistic"
+      ]
+    }
+  ]
+}

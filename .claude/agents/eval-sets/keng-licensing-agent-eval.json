@@ -1,0 +1,98 @@
+{
+  "agent_name": "keng-licensing-agent",
+  "eval_set_version": "1.0",
+  "created": "2026-03-19",
+  "description": "Evaluation set for keng-licensing-agent: licensing recommendations and cost estimation",
+  "total_questions": 5,
+  "eval_questions": [
+    {
+      "id": 1,
+      "category": "happy_path_small_scale",
+      "question": "User asks: 'I'm planning a POC lab with 2×10GE ports and traffic-only testing. What license do I need?' Provide license recommendation and cost estimate.",
+      "expected_outputs": [
+        "Recommended tier: Developer",
+        "Reason: 2×10GE fits within Developer max (2×10GE)",
+        "Data plane cost: 2 DPLU units",
+        "Control plane cost: 0 (traffic-only)",
+        "Total annual cost estimate (or monthly equivalent)"
+      ],
+      "success_criteria": [
+        "Tier matches use case (Developer is correct for POC)",
+        "Cost breakdown is logical and itemized",
+        "No control plane cost for traffic-only",
+        "Estimate is reasonable (not inflated)"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "multi_tier_comparison",
+      "question": "User asks: 'I need 4×100GE and 8 BGP sessions. Show me costs for Developer, Team, and System tiers.' Which tier is recommended and why?",
+      "expected_outputs": [
+        "All 3 tiers compared side-by-side",
+        "Developer tier: marked as insufficient (exceeds 2×10GE limit)",
+        "Team tier: ✅ recommended (supports 4×100GE + unlimited CP)",
+        "System tier: shown but marked overkill for this use case",
+        "Team tier recommended with clear rationale"
+      ],
+      "success_criteria": [
+        "All 3 tiers costed correctly",
+        "Limitations clearly stated (e.g., 'Developer: max 2×10GE')",
+        "Recommended tier is objectively best fit",
+        "Cost difference is explained"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "protocol_session_edge_case",
+      "question": "User says: 'I have 2×100GE and 64 BGP sessions (32 iBGP, 32 eBGP). How much will this cost?' Agent must calculate CP cost correctly, accounting for session volume.",
+      "expected_outputs": [
+        "Data plane: 2×100GE = 2 DPLU units",
+        "Control plane: 64 BGP sessions = calculate CPLU cost",
+        "Total CP cost: clear itemization per session unit",
+        "Total annual cost",
+        "Note: High session count may affect tier recommendation"
+      ],
+      "success_criteria": [
+        "Session counting is accurate (64 sessions = X CPLU units)",
+        "CP cost reflects session volume correctly",
+        "No underestimation of CP cost",
+        "Final recommendation considers total cost"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "optimization_suggestions",
+      "question": "User has high-cost estimate for mixed protocols (BGP + ISIS + LACP). Agent should suggest optimizations. What can the user do to reduce cost?",
+      "expected_outputs": [
+        "Identify unnecessary protocols (e.g., 'LACP not needed for this test')",
+        "Suggest reducing protocol scope (e.g., 'Remove ISIS, use BGP only')",
+        "Show cost impact of optimizations",
+        "Recommend most cost-effective protocol combination for use case"
+      ],
+      "success_criteria": [
+        "Optimization suggestions are practical",
+        "Cost savings are quantified",
+        "Optimizations don't compromise test validity",
+        "Agent explains trade-offs (e.g., 'Removing ISIS saves $Y but limits topology coverage')"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "disclaimer_and_accuracy",
+      "question": "Agent must include clear disclaimers that licensing estimates may vary. Verify the disclaimer is prominent and user is reminded to verify with Sales Engineer.",
+      "expected_outputs": [
+        "Prominent SE disclaimer: 'Verify with Solutions Engineer for final quote'",
+        "Note: 'Pricing subject to change'",
+        "Note: 'This is an estimate; actual costs may differ'",
+        "Clear statement: 'Contact sales for official licensing'",
+        "Disclaimer appears multiple times in output"
+      ],
+      "success_criteria": [
+        "Disclaimer is hard to miss (not buried in fine print)",
+        "User cannot misinterpret estimate as final quote",
+        "SE contact recommended explicitly",
+        "Estimate is labeled clearly as 'estimate'"
+      ]
+    }
+  ]
+}

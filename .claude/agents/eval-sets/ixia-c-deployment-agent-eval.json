@@ -1,0 +1,96 @@
+{
+  "agent_name": "ixia-c-deployment-agent",
+  "eval_set_version": "1.0",
+  "created": "2026-03-19",
+  "description": "Evaluation set for ixia-c-deployment-agent: infrastructure provisioning and validation",
+  "total_questions": 5,
+  "eval_questions": [
+    {
+      "id": 1,
+      "category": "happy_path",
+      "question": "Deploy Ixia-c for BGP testing with Docker Compose. Generate docker-compose.yml with 2 ports for traffic generation and protocol emulation.",
+      "expected_outputs": [
+        "Valid docker-compose.yml file",
+        "Contains ixia-c-one, controller, traffic-engine, protocol-engine services",
+        "Port mapping (te1, te2) with location values",
+        "Controller URL verified (http://localhost:8443)",
+        "Health check status (controller_reachable: true)"
+      ],
+      "success_criteria": [
+        "File is syntactically valid YAML",
+        "All required services present",
+        "Port mapping is structured and complete",
+        "Output is JSON with all required keys"
+      ]
+    },
+    {
+      "id": 2,
+      "category": "containerlab_variant",
+      "question": "Deploy Ixia-c using Containerlab (clab) for a LAG testing topology with 4 ports. Include ISIS protocol engine.",
+      "expected_outputs": [
+        "Valid topo.clab.yml file",
+        "Ixia-c node with correct image version",
+        "4 port definitions (te1, te2, te3, te4)",
+        "Port mapping with location values",
+        "ISIS protocol engine configured"
+      ],
+      "success_criteria": [
+        "topo.clab.yml is valid YAML",
+        "Containerlab schema compliance",
+        "Port count matches request (4 ports)",
+        "Location mapping documented"
+      ]
+    },
+    {
+      "id": 3,
+      "category": "error_handling",
+      "question": "User requests deployment with conflicting requirements: 'Deploy for BGP testing (requires CP+DP) with Docker Compose B2B variant (traffic-only)'. How does the agent handle this conflict?",
+      "expected_outputs": [
+        "Agent identifies the conflict",
+        "Agent asks for clarification or makes reasonable choice",
+        "Agent explains the decision (e.g., 'Choosing CP+DP because BGP requires control plane')",
+        "Either clarification requested or clear rationale provided"
+      ],
+      "success_criteria": [
+        "Conflict is detected and addressed",
+        "Error is not silent",
+        "User gets clear explanation",
+        "Deployment proceeds only after resolution"
+      ]
+    },
+    {
+      "id": 4,
+      "category": "integration_validation",
+      "question": "After deploying Ixia-c, the agent must provide port_mapping output that can be directly injected into otg-config-generator-agent. Verify the output format matches expectations.",
+      "expected_outputs": [
+        "port_mapping JSON with structure: {\"te1\": \"location_1:5555\", \"te2\": \"location_2:5556\", ...}",
+        "All port names and locations are strings (no nulls or undefined)",
+        "Port count matches deployment config",
+        "Location format is consistent (location_N:port_number)"
+      ],
+      "success_criteria": [
+        "port_mapping is valid JSON",
+        "Can be parsed and used by downstream agent",
+        "No missing values",
+        "Format is standardized and predictable"
+      ]
+    },
+    {
+      "id": 5,
+      "category": "health_check_edge_case",
+      "question": "Deployment config is generated, but during health checks the controller is unreachable (connection refused on port 8443). How does the agent handle this failure?",
+      "expected_outputs": [
+        "Agent detects controller unreachability",
+        "Agent provides troubleshooting steps (e.g., 'Check if Docker daemon is running')",
+        "Agent does NOT return success status if health checks fail",
+        "Clear error message indicates what failed and why"
+      ],
+      "success_criteria": [
+        "Health check failure is detected",
+        "Agent does not return 'healthy: true' on failure",
+        "Actionable troubleshooting guidance provided",
+        "User knows exactly what to do next"
+      ]
+    }
+  ]
+}
