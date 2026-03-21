@@ -368,88 +368,155 @@
       </section>
 
       <section id="skills">
-        <span class="section-label">Skill Ecosystem</span>
-        <h2 class="section-title">KENG/OTG Skills</h2>
-        <p class="section-desc">Four skills covering configuration generation, script automation, deployment, and licensing.</p>
+        <span class="section-label">Skills & Agents</span>
+        <h2 class="section-title">Complete OTG Automation Suite</h2>
+        <p class="section-desc">5 production-ready skills with 4 intelligent subagents for orchestrated test automation.</p>
         <div class="skill-grid">
           <article class="skill-card">
-            <h3>otg-config-generator</h3>
-            <p class="value">Natural language → production-ready OTG JSON</p>
+            <h3>🔄 ixnetwork-to-keng-converter</h3>
+            <p class="value">IxNetwork config → OTG format migration</p>
             <ul>
-              <li>Parses test intent; maps to OTG schema</li>
-              <li>Validates completeness and constraints</li>
-              <li>BGP, ISIS, LACP, LLDP, VLANs, LAGs</li>
-              <li>"Create a BGP test with 2 ports..." → valid JSON</li>
+              <li>Feasibility analysis (supported/unsupported)</li>
+              <li>RestPy code or JSON auto-detection</li>
+              <li>Detailed conversion reports</li>
+              <li>BGP, Ethernet, IPv4, VLAN support</li>
             </ul>
             <span class="skill-badge">Production-Ready</span>
           </article>
           <article class="skill-card">
-            <h3>snappi-script-generator</h3>
-            <p class="value">OTG config → executable Python test scripts</p>
+            <h3>🟢 otg-config-generator</h3>
+            <p class="value">Natural language → OTG JSON</p>
             <ul>
-              <li>Full Snappi scripts with protocol setup</li>
-              <li>BGP convergence polling, traffic control</li>
-              <li>Configurable assertions, metrics collection</li>
+              <li>"Create BGP test with 2 ports" → valid config</li>
+              <li>Schema validation & constraint checking</li>
+              <li>BGP, ISIS, LACP, LLDP, VLANs, LAGs</li>
+              <li>Paired with subagent for orchestration</li>
+            </ul>
+            <span class="skill-badge">Production-Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>🟣 snappi-script-generator</h3>
+            <p class="value">OTG config → executable Python scripts</p>
+            <ul>
+              <li>Standalone Snappi scripts (no external deps)</li>
+              <li>Protocol setup, traffic control, assertions</li>
+              <li>BGP convergence polling, metrics collection</li>
               <li>Error handling, retry, graceful cleanup</li>
             </ul>
             <span class="skill-badge">Production-Ready</span>
           </article>
           <article class="skill-card">
-            <h3>ixia-c-deployment</h3>
-            <p class="value">Deploy Ixia-c infrastructure before running tests</p>
+            <h3>🚢 ixia-c-deployment</h3>
+            <p class="value">Infrastructure provisioning & validation</p>
             <ul>
               <li>Docker Compose (B2B, CP+DP, LAG)</li>
               <li>Containerlab (ixia-c-one, per-component)</li>
-              <li>Validated image facts, health checks</li>
-              <li>Integration with snappi-script-generator</li>
+              <li>Health checks & port location mapping</li>
+              <li>Paired with subagent for orchestration</li>
             </ul>
             <span class="skill-badge">Production-Ready</span>
           </article>
           <article class="skill-card">
-            <h3>keng-licensing</h3>
-            <p class="value">Licensing guidance for OTG/KENG</p>
+            <h3>📋 keng-licensing</h3>
+            <p class="value">OTG licensing guidance & cost estimates</p>
             <ul>
-              <li>Seat allocations (Developer/Team/System)</li>
+              <li>Developer/Team/System tier recommendations</li>
               <li>KENG-DPLU/CPLU cost calculations</li>
-              <li>License mechanics, SE escalation</li>
-              <li>Structured, disclaimer-aware answers</li>
+              <li>License mechanics, SE disclaimers</li>
+              <li>Parallel execution with other agents</li>
             </ul>
             <span class="skill-badge">Production-Ready</span>
           </article>
         </div>
       </section>
 
+      <section id="agents">
+        <span class="section-label">Intelligent Orchestration</span>
+        <h2 class="section-title">Subagent Architecture</h2>
+        <p class="section-desc">4 specialized agents that work together to orchestrate complex test workflows.</p>
+        <div class="skill-grid">
+          <article class="skill-card">
+            <h3>🔵 ixia-c-deployment-agent</h3>
+            <p class="value">Infrastructure deployer (Docker/Containerlab)</p>
+            <ul>
+              <li>Determines topology based on protocol needs</li>
+              <li>Generates deployment manifests</li>
+              <li>Port location mapping for downstream agents</li>
+              <li>5 eval questions for quality validation</li>
+            </ul>
+            <span class="skill-badge">Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>🟢 otg-config-generator-agent</h3>
+            <p class="value">Intent translator (natural language → config)</p>
+            <ul>
+              <li>Parses test scenarios, maps to OTG schema</li>
+              <li>Injects port locations from deployment agent</li>
+              <li>Validates schema compliance & alignment</li>
+              <li>5 eval questions for quality validation</li>
+            </ul>
+            <span class="skill-badge">Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>🟣 snappi-script-generator-agent</h3>
+            <p class="value">Executor (config → script)</p>
+            <ul>
+              <li>Generates standalone Python Snappi scripts</li>
+              <li>Embeds infrastructure details & protocol setup</li>
+              <li>Implements assertions & metrics collection</li>
+              <li>5 eval questions for quality validation</li>
+            </ul>
+            <span class="skill-badge">Ready</span>
+          </article>
+          <article class="skill-card">
+            <h3>🟠 keng-licensing-agent</h3>
+            <p class="value">Advisor (licensing recommendations)</p>
+            <ul>
+              <li>Cost estimation (DPLU/CPLU calculations)</li>
+              <li>Tier recommendations & comparisons</li>
+              <li>Optimization suggestions & SE disclaimers</li>
+              <li>5 eval questions for quality validation</li>
+            </ul>
+            <span class="skill-badge">Ready</span>
+          </article>
+        </div>
+      </section>
+
       <section id="workflow">
         <span class="section-label">End-to-End Flow</span>
-        <h2 class="section-title">Workflow</h2>
-        <p class="section-desc">From natural language to running tests on KENG.</p>
+        <h2 class="section-title">Agent Orchestration</h2>
+        <p class="section-desc">Claude Code orchestrates subagents to automate network test workflows.</p>
         <div class="workflow-wrap">
           <div class="mermaid">
-flowchart LR
-    subgraph input [Input]
-        NL[Natural Language]
-    end
+flowchart TD
+    User["👤 User Intent<br/>Create BGP test"]
 
-    subgraph skills [Claude Skills]
-        Gen[otg-config-generator]
-        Script[snappi-script-generator]
-        Deploy[ixia-c-deployment]
-    end
+    Orch["🎯 Claude Orchestrator<br/>Parse & dispatch"]
 
-    subgraph output [Output]
-        OTG[OTG Config JSON]
-        Py[Executable Python Script]
-        Infra[Running Ixia-c]
-    end
+    Deploy["🔵 ixia-c-deployment-agent<br/>Docker Compose + veth"]
+    Config["🟢 otg-config-generator-agent<br/>Natural language → OTG"]
+    Script["🟣 snappi-script-generator-agent<br/>OTG → Python script"]
+    License["🟠 keng-licensing-agent<br/>Cost estimation"]
 
-    NL --> Gen
-    Gen --> OTG
-    OTG --> Script
-    Deploy --> Infra
-    Script --> Py
-    Infra --> Py
+    Output1["📝 docker-compose.yml<br/>+ port mapping"]
+    Output2["📋 otg_config.json<br/>aligned"]
+    Output3["🐍 test_bgp.py<br/>executable"]
+    Output4["💰 License recommendation<br/>+ cost"]
+
+    User --> Orch
+    Orch --> Deploy
+    Orch --> Config
+    Orch --> Script
+    Orch --> License
+
+    Deploy --> Output1
+    Output1 --> Config
+    Config --> Output2
+    Output2 --> Script
+    Script --> Output3
+    License --> Output4
           </div>
-          <p class="workflow-narrative"><strong>Natural Language → OTG → Snappi → Run</strong> — Describe tests in plain language, generate OTG JSON, produce executable scripts, and deploy Ixia-c infrastructure.</p>
+          <p class="workflow-narrative"><strong>Intent → Agents → Outputs</strong> — Claude orchestrates 4 specialized agents: deployment infrastructure, config generation, script creation, and licensing advice work together to automate complex test workflows.</p>
         </div>
       </section>
 
@@ -458,20 +525,28 @@ flowchart LR
         <h2 class="section-title">Why This Matters</h2>
         <div class="value-grid">
           <div class="value-item">
-            <h4>Deployment Ready</h4>
-            <p>Docker Compose and Containerlab for Ixia-c infrastructure—ready to run in minutes.</p>
+            <h4>Intelligent Orchestration</h4>
+            <p>4 subagents work together—deployment, config, script, licensing—eliminating manual coordination.</p>
           </div>
           <div class="value-item">
-            <h4>Faster Test Creation</h4>
-            <p>Natural language → valid OTG config in seconds. No manual schema lookup.</p>
+            <h4>Minutes to Runnable Tests</h4>
+            <p>From natural language to executable Snappi script in minutes, not hours or days.</p>
           </div>
           <div class="value-item">
-            <h4>End-to-End Automation</h4>
-            <p>Config to executable script with protocol setup, traffic control, and assertions.</p>
+            <h4>Production-Ready Output</h4>
+            <p>All generated code includes error handling, retries, assertions, and metrics collection.</p>
           </div>
           <div class="value-item">
-            <h4>Licensing Clarity</h4>
-            <p>Structured guidance on KENG-DPLU/CPLU, seat allocations, and cost estimates.</p>
+            <h4>Vendor-Neutral</h4>
+            <p>Works with any OTG-compliant traffic generator (ixia-c, KENG, etc.)—not locked in.</p>
+          </div>
+          <div class="value-item">
+            <h4>Complete Documentation</h4>
+            <p>20 evaluation questions per agent ensure quality; README + guides for each component.</p>
+          </div>
+          <div class="value-item">
+            <h4>Cost Clarity</h4>
+            <p>Understand licensing requirements before building tests—avoid surprises.</p>
           </div>
         </div>
       </section>
@@ -481,20 +556,28 @@ flowchart LR
         <h2 class="section-title">At a Glance</h2>
         <div class="stats-row">
           <div class="stat">
-            <div class="stat-value">4</div>
-            <div class="stat-label">Skills</div>
+            <div class="stat-value">5</div>
+            <div class="stat-label">Production Skills</div>
           </div>
           <div class="stat">
             <div class="stat-value">4</div>
-            <div class="stat-label">Production-Ready</div>
+            <div class="stat-label">Orchestration Agents</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">20</div>
+            <div class="stat-label">Evaluation Questions</div>
           </div>
           <div class="stat">
             <div class="stat-value">BGP · ISIS · LACP · LLDP</div>
             <div class="stat-label">Protocols Supported</div>
           </div>
           <div class="stat">
-            <div class="stat-value">Docker · Containerlab</div>
+            <div class="stat-value">Docker · Containerlab · K8s</div>
             <div class="stat-label">Deployment Options</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">Snappi & OTG v0.11.0+</div>
+            <div class="stat-label">SDK Support</div>
           </div>
         </div>
       </section>
