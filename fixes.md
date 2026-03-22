@@ -315,6 +315,32 @@ fixes.md is the **first-catch log**. Once a fix is validated, it must be promote
 ## Last Updated
 2026-03-22 (runtime fixes promoted to SKILL.md files; promotion workflow documented)
 
+### [Deployment] CRITICAL: Never use ixia-c-one for Docker Compose (non-Containerlab)
+**Date:** 2026-03-22
+**Agent:** ixia-c-deployment-agent, snappi-script-generator-agent
+**Symptom:** B2B dataplane test deployed with ixia-c-one on Docker Compose showed:
+- Throughput constrained to ~1.8 Gbps instead of 10 Gbps (1.8% line rate)
+- Frame loss in simple B2B loopback (0.3-0.4%)
+- Metric field limitations (no flow-level latency/loss)
+- Overall suboptimal performance
+**Root Cause:** ixia-c-one is an all-in-one bundle optimized for Containerlab multi-node topologies, NOT Docker Compose standalone deployments. It has architectural constraints that impact throughput and metrics.
+**Solution:** Use separate containers for Docker Compose:
+- `ghcr.io/open-traffic-generator/keng-controller` (controller)
+- `ghcr.io/open-traffic-generator/ixia-c-traffic-engine` (data plane, one or more)
+- `ghcr.io/open-traffic-generator/ixia-c-protocol-engine` (control plane, if needed)
+**Prevention (CRITICAL):**
+1. **ixia-c-deployment-agent MUST enforce this rule:**
+   - If deployment_type == "docker-compose" → ALWAYS use separate containers, NEVER ixia-c-one
+   - If deployment_type == "containerlab" AND single_node → use ixia-c-one
+   - If deployment_type == "containerlab" AND multi_node → use ixia-c-one for each node
+2. Update ixia-c-deployment/SKILL.md Step 2 decision table:
+   - Docker Compose B2B → keng-controller + ixia-c-traffic-engine (NOT ixia-c-one)
+   - Docker Compose CP+DP → keng-controller + ixia-c-traffic-engine + ixia-c-protocol-engine (NOT ixia-c-one)
+3. Add eval case: "Deploy Docker Compose B2B → should reject ixia-c-one, use separate containers"
+**Status:** ✅ Fixed (architectural rule documented; skill update pending)
+
+---
+
 ### [Deployment] Containerlab Multi-Node ixia-c-one Topology Pattern
 **Date:** 2026-03-22
 **Agent:** ixia-c-deployment-agent, snappi-script-generator-agent

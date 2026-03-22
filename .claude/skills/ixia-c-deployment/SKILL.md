@@ -49,12 +49,37 @@ They contain authoritative, battle-tested patterns from the upstream conformance
 
 | User need | Method | Reference |
 |-----------|--------|-----------|
-| Traffic-only b2b, Docker | **Docker Compose — B2B** | `ref-docker-topologies.md` → Type dp |
-| Protocols (BGP/ISIS) b2b, Docker | **Docker Compose — CP+DP** | `ref-docker-topologies.md` → Type cpdp |
-| LAG testing, Docker | **Docker Compose — LAG** | `ref-docker-topologies.md` → Type lag |
+| Traffic-only b2b, Docker | **Docker Compose — B2B** (separate keng-controller + TE) | `ref-docker-topologies.md` → Type dp |
+| Protocols (BGP/ISIS) b2b, Docker | **Docker Compose — CP+DP** (separate keng-controller + TE + PE) | `ref-docker-topologies.md` → Type cpdp |
+| LAG testing, Docker | **Docker Compose — LAG** (separate keng-controller + multi-TE + PE) | `ref-docker-topologies.md` → Type lag |
 | Simple b2b or DUT lab, Containerlab | **ixia-c-one** | `ref-containerlab-topologies.md` → Type A |
 | Custom TE/PE versions, Containerlab | **Per-component clab** | `ref-containerlab-topologies.md` → Type B |
 | Kubernetes / KNE | **Ixia-c Operator / KNE** | See Reference links below |
+
+### ⚠️ CRITICAL: Never use ixia-c-one for Docker Compose
+
+`ixia-c-one` is an all-in-one bundle optimized for Containerlab multi-node topologies. **DO NOT use it for Docker Compose deployments.**
+
+**Why:** ixia-c-one has architectural constraints:
+- Throughput capped at ~1.8 Gbps (not suitable for 10+ Gbps testing)
+- No flow-level latency/loss metrics
+- Suboptimal for standalone Docker Compose
+
+**Always use separate containers for Docker Compose:**
+```yaml
+services:
+  keng-controller:
+    image: ghcr.io/open-traffic-generator/keng-controller:latest
+    ...
+  ixia-c-traffic-engine-1:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    ...
+  ixia-c-protocol-engine:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:latest
+    ...
+```
+
+See `ref-docker-topologies.md` for complete examples.
 
 ---
 
