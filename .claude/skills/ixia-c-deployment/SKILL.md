@@ -99,15 +99,81 @@ Protocol engine must share the traffic engine's network namespace:
 
 ## Step 4: Verify deployment
 
-```bash
-# Docker Compose
-sudo docker compose ps
-curl -sk https://localhost:8443/config   # returns {}
+### Docker Compose Verification
 
-# Containerlab — get node IP first
-sudo containerlab inspect -t topo.yml
-curl -sk https://<node-ip>:8443/config
+```bash
+# Check containers are running
+sudo docker compose ps
+
+# Verify controller is responding
+curl -k https://localhost:8443/config   # returns {} if no config loaded
 ```
+
+**Note:** The correct endpoint is `/config`, NOT `/api/v1/config`. The `-k` flag is required for self-signed certificates.
+
+### Containerlab Verification
+
+```bash
+# Inspect deployed topology to get controller node IP
+sudo containerlab inspect -t topo.yml
+
+# Get the ixia-c container IP (if using ixia-c-one)
+IXIA_IP=$(sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clab-<topo-name>-ixia-c)
+
+# Verify controller is responding
+curl -k https://${IXIA_IP}:8443/config   # returns {} if no config loaded
+```
+
+### Port Discovery
+
+If containers use `network_mode: host`, Docker port mapping is empty. Discover actual ports from controller logs:
+
+```bash
+docker logs <controller-container-name> | grep -E "HTTPPort|GRPCPort|HTTPS Server|GRPC Server"
+# Expected output:
+# {"msg":"Build Details",...,"HTTPPort":8443,...}
+# {"msg":"HTTPS Server started","addr":":8443",...}
+# {"msg":"GRPC Server started","addr":"[::]:40051",...}
+```
+
+Default ports: **HTTPS 8443**, **GRPC 40051**
+
+---
+
+## Step 4.5: TLS and Certificates
+
+Ixia-c uses **self-signed HTTPS certificates** by default in lab/test deployments.
+
+### Verification with Self-Signed Certificates
+
+When connecting via curl or any HTTPS client:
+- **curl:** Use `-k` or `--insecure` flag
+- **Python requests:** Pass `verify=False`
+- **snappi:** Generated scripts automatically pass `verify=False` for self-signed certs
+
+Example:
+```bash
+# CORRECT for self-signed certificates
+curl -k https://localhost:8443/config
+
+# WRONG — will fail TLS handshake
+curl https://localhost:8443/config
+# Error: TLS handshake error: unexpected EOF
+```
+
+### Production Deployments
+
+For production deployments, replace self-signed certificates with CA-signed certificates:
+
+```bash
+# Generate CA-signed certificate (outside scope of this skill; coordinate with security/ops)
+# Then mount into controller container:
+docker run -v /path/to/certs/server.crt:/home/ixia-c/controller/certs/server.crt \
+           -v /path/to/certs/server.key:/home/ixia-c/controller/certs/server.key \
+           ...
+```
+
+Reference: [Ixia-c releases](https://github.com/open-traffic-generator/ixia-c/releases) — Deployment guide
 
 ---
 
@@ -138,6 +204,10 @@ Port `location` values must match the `location` in the controller's `location_m
 | Port location not found | `location_map` not injected | See `ref-controller-config.md` |
 | HTTP 500 `permission denied` on `/config` push | `docker cp` creates config.yaml as root (mode 600), controller process can't read it | After `docker cp`, run: `sudo docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml` |
 | BGP sessions flap / never establish in B2B | Connection collision — both emulated peers open TCP simultaneously | Set `"advanced": { "passive_mode": true }` on one peer in the OTG config so only one side initiates TCP |
+| Snappi test connects to `localhost:8443` but gets Connection refused (Containerlab) | Containerlab runs ixia-c in isolated Docker network; `localhost:8443` resolves to host, not container | Discover container IP: `IXIA_IP=$(sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clab-<topo>-<node>)` and use `https://${IXIA_IP}:8443` in test script |
+| curl to controller returns 404 `page not found` | Wrong endpoint — tried `/api/v1/config` instead of `/config` | Use correct endpoint: `curl -k https://localhost:8443/config` |
+| curl to controller shows `TLS handshake error: unexpected EOF` in logs | Self-signed certificate rejected | Add `-k` or `--insecure` flag: `curl -k https://localhost:8443/config` |
+| `docker inspect` shows empty `"Ports": {}` section for controller | Container uses `network_mode: host` (direct host network access, no port mapping) | Check controller logs for port configuration: `docker logs <container> \| grep "HTTPPort\|HTTPS Server"` (default: 8443) |
 
 ---
 
