@@ -364,6 +364,50 @@ cat .claude/agents/eval-sets/ixia-c-deployment-agent-eval.json
 
 ---
 
+## Agent Learning & Error Recovery
+
+### fixes.md — Mistake & Solution Log
+**File:** `fixes.md` at project root
+
+This file documents all mistakes discovered by Claude agents during execution, along with their root causes and solutions. It serves as institutional memory for the project.
+
+**How to use this file:**
+
+1. **At session start:** Scan `fixes.md` for known issues that might apply to current work
+2. **During agent development:** Check relevant category before implementing new logic
+3. **On error:** Search by symptom, implement documented solution, prevent future occurrence
+4. **After fixing an issue:** Add new entry with full context so future agents learn
+5. **In code comments:** Reference issues by section (e.g., "See fixes.md: Port Alignment Issues")
+
+**Entry format:**
+```markdown
+### [Category] [Issue Title]
+**Date:** YYYY-MM-DD
+**Agent:** [Agent name]
+**Symptom:** [What failed]
+**Root Cause:** [Why it happened]
+**Solution:** [How it was fixed]
+**Prevention:** [How to avoid next time]
+**Status:** ✅ Fixed | 🔧 Monitoring | ⚠️ Partial fix
+```
+
+**Categories tracked:**
+- Port Alignment — Port mapping, location mismatches
+- Script Generation — Python syntax, Snappi SDK, imports
+- Config Validation — OTG schema violations
+- Deployment — Docker/Containerlab failures
+- Licensing — Cost calculations, license tiers
+- Data Handoff — Agent-to-agent format issues
+- CLI/API — Command invocation, auth, rate limits
+- Type Hints — Python type annotation issues
+- State Management — Inconsistent state, race conditions
+- Error Handling — Silent failures, unclear messages
+- Documentation — Missing context, unclear instructions
+
+**Purpose:** Build an agent feedback loop where mistakes become documented patterns, reducing repetition and improving reliability.
+
+---
+
 ## Orchestrator Decision Points
 
 ### When to Dispatch Which Agent
@@ -414,6 +458,7 @@ From CLAUDE.md at `/Users/ashwin.joshi/.claude/CLAUDE.md` (global preferences):
 
 ## References & Important Files
 
+- **fixes.md** — Agent learning log: mistakes, root causes, solutions (read at session start ⭐)
 - **README.md** — Project overview, workflow examples, skill descriptions
 - **AGENT_ORCHESTRATION_PLAN.md** — Detailed orchestration patterns, use cases, decision tree
 - **.claude/skills/INDEX.md** — Skill technical overview
