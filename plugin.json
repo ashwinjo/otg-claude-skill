@@ -1,0 +1,122 @@
+{
+  "name": "kengotg",
+  "displayName": "KENG OTG Traffic Testing",
+  "version": "2.0.0",
+  "description": "Complete network test automation toolkit: Convert IxNetwork configs to OTG, generate traffic test scripts, deploy Ixia-c infrastructure, and advise on licensing.",
+  "author": "Anthropic Claude Code Team",
+  "homepage": "https://github.com/anthropics/claude-code",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/claude-code"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "networking",
+    "traffic-generation",
+    "otg",
+    "ixia",
+    "testing",
+    "automation",
+    "bgp",
+    "ixnetwork-migration",
+    "snappi",
+    "network-testing"
+  ],
+  "capabilities": {
+    "commands": 16,
+    "agents": 4,
+    "skills": 5,
+    "schemas": [
+      "openapi.yaml"
+    ]
+  },
+  "components": {
+    "skills": [
+      {
+        "id": "ixnetwork-to-keng-converter",
+        "name": "IxNetwork to KENG Converter",
+        "description": "Migrate IxNetwork tests to vendor-neutral OTG format"
+      },
+      {
+        "id": "otg-config-generator",
+        "name": "OTG Config Generator",
+        "description": "Generate OTG configurations from natural language intent"
+      },
+      {
+        "id": "snappi-script-generator",
+        "name": "Snappi Script Generator",
+        "description": "Generate executable Snappi scripts from OTG configs"
+      },
+      {
+        "id": "ixia-c-deployment",
+        "name": "Ixia-c Deployment",
+        "description": "Deploy and configure Ixia-c infrastructure"
+      },
+      {
+        "id": "keng-licensing",
+        "name": "KENG Licensing",
+        "description": "Licensing recommendations and cost estimation"
+      }
+    ],
+    "agents": [
+      {
+        "id": "ixia-c-deployment-agent",
+        "name": "Infrastructure Provisioner",
+        "description": "Deploys and configures Ixia-c containerized traffic generator"
+      },
+      {
+        "id": "otg-config-generator-agent",
+        "name": "Config Generator",
+        "description": "Translates natural language intent to OTG configurations"
+      },
+      {
+        "id": "snappi-script-generator-agent",
+        "name": "Script Generator",
+        "description": "Generates executable Python scripts from OTG configs"
+      },
+      {
+        "id": "keng-licensing-agent",
+        "name": "Licensing Advisor",
+        "description": "Provides licensing recommendations and cost analysis"
+      }
+    ],
+    "commands": [
+      {
+        "section": "Help & Discovery",
+        "count": 7
+      },
+      {
+        "section": "Skill Shortcuts",
+        "count": 5
+      },
+      {
+        "section": "Workflows",
+        "count": 4
+      }
+    ]
+  },
+  "requirements": {
+    "claude-code": ">=1.0.0",
+    "docker": ">=20.10.0",
+    "python": ">=3.9"
+  },
+  "systemRequirements": [
+    "Linux or macOS",
+    "4GB+ RAM for Ixia-c deployment",
+    "Docker daemon (for container-based deployments)"
+  ],
+  "status": "production",
+  "maturity": "stable",
+  "documentation": {
+    "readme": "README.md",
+    "installation": "INSTALLATION.md",
+    "troubleshooting": "TROUBLESHOOTING.md",
+    "architecture": "AGENT_ORCHESTRATION_PLAN.md",
+    "claude": "CLAUDE.md"
+  },
+  "support": {
+    "issues": "https://github.com/anthropics/claude-code/issues",
+    "discussions": "https://github.com/anthropics/claude-code/discussions"
+  },
+  "changelog": "CHANGELOG.md"
+}
