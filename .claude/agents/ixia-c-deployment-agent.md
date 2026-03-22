@@ -91,6 +91,17 @@ This agent is responsible for **infrastructure provisioning and validation** in 
 
 ```
 User requests deployment
+  │
+  ├─ Check for existing ixia-c containers
+  │   ├─ If containers exist and match request
+  │   │   └─ ✅ Report "No deployment needed" + port mapping + exit
+  │   ├─ If containers exist but don't match request
+  │   │   └─ ⚠️ Ask user: reuse or rebuild?
+  │   │       ├─ If reuse: return existing port mapping
+  │   │       └─ If rebuild: proceed to teardown + deploy
+  │   └─ If no containers exist
+  │       └─ Proceed to deployment
+  │
   ├─ If method specified
   │   └─ Use requested method (Docker or Containerlab)
   └─ If method not specified

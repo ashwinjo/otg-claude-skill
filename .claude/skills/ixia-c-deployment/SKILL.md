@@ -9,6 +9,28 @@ description: |
 
 # Ixia-c Deployment — Entry Point
 
+## Step 0: Check if deployment already exists
+
+**Always check for existing containers before deploying.**
+
+```bash
+# Check for running ixia-c containers
+docker ps --filter "name=keng-controller\|ixia-c-traffic-engine\|ixia-c-protocol-engine\|ixia-c-one" --format "table {{.Names}}\t{{.Status}}"
+
+# Or for Containerlab, check for running topology
+sudo containerlab inspect -t topo.clab.yml 2>/dev/null | grep -i "^| Name" -A 20
+```
+
+**If containers/topology already exist:**
+- ✅ Verify they match the requested use case (port count, protocol support, deployment method)
+- ✅ If they match: Report "No deployment needed" + port mapping + controller URL
+- ⚠️ If they don't match: Ask user if they want to reuse or rebuild
+- 🗑️ Only proceed with teardown + rebuild if user explicitly requests it
+
+**If no containers exist:** Proceed to Step 1
+
+---
+
 ## Step 1: Read the relevant reference files
 
 **Always read the applicable reference files before generating any configuration.**
