@@ -327,7 +327,7 @@ def collect_metrics(api, flows, interval, duration):
 
             # Get flow metrics
             req = snappi.MetricsRequest()
-            req.flow.state = snappi.MetricsRequest.FlowMetricState.any
+            req.choice = req.FLOW
             resp = api.get_metrics(req)
 
             total_tx = 0

@@ -31,7 +31,7 @@ sudo ip link set veth-z up
 # 2. Controller (host network)
 docker run --net=host -d \
     --name=keng-controller \
-    <controller-image> \
+    ghcr.io/open-traffic-generator/keng-controller:1.48.0-5 \
     --accept-eula \
     --disable-app-usage-reporter
 
@@ -43,7 +43,7 @@ docker run --net=host --privileged -d \
     -e OPT_NO_HUGEPAGES="Yes" \
     -e OPT_NO_PINNING="Yes" \
     -e OPT_ADAPTIVE_CPU_USAGE="Yes" \
-    <traffic-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.245
 
 # 4. Traffic engine Z (binds to veth-z on host network)
 docker run --net=host --privileged -d \
@@ -53,7 +53,7 @@ docker run --net=host --privileged -d \
     -e OPT_NO_HUGEPAGES="Yes" \
     -e OPT_NO_PINNING="Yes" \
     -e OPT_ADAPTIVE_CPU_USAGE="Yes" \
-    <traffic-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.245
 
 # 5. Inject location_map config into controller
 # (see ref-controller-config.md for format)
@@ -84,7 +84,7 @@ docker run -d \
     --name=keng-controller \
     --publish 0.0.0.0:8443:8443 \
     --publish 0.0.0.0:40051:40051 \
-    <controller-image> \
+    ghcr.io/open-traffic-generator/keng-controller:1.48.0-5 \
     --accept-eula \
     --disable-app-usage-reporter
 
@@ -97,14 +97,14 @@ docker run --privileged -d \
     -e OPT_NO_PINNING="Yes" \
     -e WAIT_FOR_IFACE="Yes" \
     -e OPT_ADAPTIVE_CPU_USAGE="Yes" \
-    <traffic-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.245
 
 # 3. Protocol engine A — SHARES TE-A's network namespace
 docker run --privileged -d \
     --net=container:ixia-c-traffic-engine-veth-a \
     --name=ixia-c-protocol-engine-veth-a \
     -e INTF_LIST="veth-a" \
-    <protocol-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.507
 
 # 4. Traffic engine Z (own network namespace)
 docker run --privileged -d \
@@ -115,14 +115,14 @@ docker run --privileged -d \
     -e OPT_NO_PINNING="Yes" \
     -e WAIT_FOR_IFACE="Yes" \
     -e OPT_ADAPTIVE_CPU_USAGE="Yes" \
-    <traffic-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.245
 
 # 5. Protocol engine Z — SHARES TE-Z's network namespace
 docker run --privileged -d \
     --net=container:ixia-c-traffic-engine-veth-z \
     --name=ixia-c-protocol-engine-veth-z \
     -e INTF_LIST="veth-z" \
-    <protocol-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.507
 
 # 6. Create veth pair and push into container namespaces
 sudo ip link add veth-a type veth peer name veth-z
@@ -157,14 +157,14 @@ docker run --privileged -d \
     -e WAIT_FOR_IFACE="Yes" \
     -e OPT_ADAPTIVE_CPU_USAGE="Yes" \
     -e OPT_MEMORY="1024" \
-    <traffic-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-traffic-engine:1.8.0.245
 
 # Protocol engine A — lists all LAG interfaces
 docker run --privileged -d \
     --net=container:ixia-c-traffic-engine-veth-a \
     --name=ixia-c-protocol-engine-veth-a \
     -e INTF_LIST="veth-a,veth-b,veth-c" \
-    <protocol-engine-image>
+    ghcr.io/open-traffic-generator/ixia-c-protocol-engine:1.00.0.507
 ```
 
 **Controller location_map** (LAG — note `;1`, `;2`, `;3` port indices):

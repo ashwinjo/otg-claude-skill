@@ -187,6 +187,7 @@ Commands for quick invocation of skills:
 - `/kengotg-deploy-ixia` — Quick Ixia-c deployment
 - `/kengotg-licensing` — Quick licensing check
 - `/kengotg-migrate-ix` — Quick IxNetwork migration
+- `/kengotg-cleanup` — Clean up all containers, veth pairs, and topologies
 
 ### Section B: Workflow Commands
 Commands for full end-to-end workflows:
@@ -202,13 +203,15 @@ Commands for full end-to-end workflows:
 ```
 .claude/commands/
 ├── COMMANDS.md                    # This file (index)
-├── kengotg-keng-help.md                   # Plugin help
-├── kengotg-show-skills.md                 # Skill discovery
-├── kengotg-show-agents.md                 # Agent discovery
-├── kengotg-show-architecture.md           # Architecture diagrams
-├── kengotg-examples.md                    # Workflow examples
-├── kengotg-skill-help.md                  # Detailed skill docs
-└── kengotg-eval-agents.md                 # Evaluation framework
+├── kengotg-keng-help.md           # Plugin help
+├── kengotg-show-skills.md         # Skill discovery
+├── kengotg-show-agents.md         # Agent discovery
+├── kengotg-show-architecture.md   # Architecture diagrams
+├── kengotg-examples.md            # Workflow examples
+├── kengotg-skill-help.md          # Detailed skill docs
+├── kengotg-eval-agents.md         # Evaluation framework
+├── kengotg-cleanup.md             # Environment cleanup
+└── ...                            # Section A & B commands
 ```
 
 ---

@@ -117,6 +117,19 @@ Port `location` values must match the `location` in the controller's `location_m
 
 ---
 
+## Official Docker Image Paths (v1.48.0-5)
+
+| Component | Image | Version |
+|-----------|-------|---------|
+| Controller | `ghcr.io/open-traffic-generator/keng-controller` | 1.48.0-5 |
+| Traffic Engine | `ghcr.io/open-traffic-generator/ixia-c-traffic-engine` | 1.8.0.245 |
+| Protocol Engine | `ghcr.io/open-traffic-generator/ixia-c-protocol-engine` | 1.00.0.507 |
+| All-in-One | `ghcr.io/open-traffic-generator/ixia-c-one` | 1.48.0-5 |
+
+**Note:** Controller is `keng-controller` (NOT `ixia-c-controller`). Check [releases](https://github.com/open-traffic-generator/ixia-c/releases) for newer versions.
+
+---
+
 ## Reference links
 
 - GitHub: https://github.com/open-traffic-generator/ixia-c

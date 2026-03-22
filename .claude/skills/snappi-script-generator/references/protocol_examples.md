@@ -110,37 +110,41 @@ p1 = config.ports.port(name='p1')[0]
 d = config.devices.device(name='isis_device')[0]
 e = d.ethernets.ethernet()[0]
 e.connection.port_name = p1.name
+e.name = 'eth1'
 e.mac = '00:00:00:00:00:01'
 
 # IPv4 addressing
 i4 = e.ipv4_addresses.ipv4()[0]
+i4.name = 'ipv4_1'
 i4.address = '10.0.0.1'
 i4.gateway = '10.0.0.2'
 i4.prefix = 24
 
-# ISIS configuration
+# ISIS configuration (single object on Device, NOT an array)
 isis = d.isis
-isis.name = 'isis_device'
-isis.system_id = '0000000000001'  # 6-byte system ID
+isis.name = 'isis_router_1'
+isis.system_id = '640100010000'  # 6-byte hex system ID
 
-# ISIS interface
+# ISIS interface — eth_name references Device.Ethernet.name
 isis_int = isis.interfaces.interface()[0]
-isis_int.ethernet_name = e.name
-isis_int.level_type = isis_int.LEVEL_1_2
-isis_int.hello_interval = 10
-isis_int.dead_interval = 30
+isis_int.eth_name = e.name          # NOT ethernet_name
+isis_int.name = 'isis_iface_1'      # required, globally unique
+isis_int.network_type = 'point_to_point'  # or 'broadcast' (default)
+isis_int.level_type = 'level_2'     # 'level_1', 'level_2' (default), or 'level_1_2'
 
-# ISIS router
-router = isis.routers.router()[0]
-router.name = 'isis_router'
-
-# ISIS route
-route = router.ipv4_routes.ipv4route()[0]
-route.address = '192.168.0.0'
-route.prefix = 24
+# ISIS IPv4 routes (on IsisRouter directly, NOT via sub-routers)
+route = isis.v4_routes.v4routerange(name='isis_route_v4')[0]
+route.addresses.v4routeaddress(address='192.168.0.0', prefix=24, count=1, step=1)
 
 api.set_config(config)
 ```
+
+**Key ISIS rules:**
+- `isis` is a **single object** on Device (NOT an array)
+- `system_id` is **required** (hex string, e.g., `"640100010000"`)
+- `interfaces` array is **required**, each entry needs `eth_name` (NOT `ethernet_name`) and `name`
+- Routes are on `isis.v4_routes` / `isis.v6_routes` directly (no sub-router concept)
+- `level_type`: `"level_1"`, `"level_2"` (default), or `"level_1_2"`
 
 ---
 
@@ -197,22 +201,25 @@ p1, p2 = config.ports.port(name='p1').port(name='p2')
 d = config.devices.device(name='vlan_device')[0]
 e = d.ethernets.ethernet()[0]
 e.connection.port_name = p1.name
+e.name = 'eth1'
 e.mac = '00:00:00:00:00:01'
 
-# VLAN interface
+# VLAN tag on Ethernet interface
 vlan = e.vlans.vlan()[0]
-vlan.vlan_id = 100
+vlan.id = 100           # NOT vlan_id
 vlan.name = 'vlan_100'
 
-# IP on VLAN
-i4 = vlan.ipv4_addresses.ipv4()[0]
+# IPv4 address on Ethernet (NOT on VLAN — IPv4 stays on Ethernet)
+i4 = e.ipv4_addresses.ipv4()[0]
+i4.name = 'ipv4_1'
 i4.address = '10.0.100.1'
 i4.gateway = '10.0.100.254'
+i4.prefix = 24
 
 # Flow with VLAN header
 flow = config.flows.flow(name='flow_vlan')[0]
 flow.tx_rx.port.tx_name = p1.name
-flow.tx_rx.port.rx_name = p2.name
+flow.tx_rx.port.rx_names = [p2.name]  # rx_names (array), NOT rx_name
 flow.packet.ethernet().vlan().ipv4().udp()
 
 # Configure headers
@@ -221,43 +228,60 @@ eth.src.value = '00:00:00:00:00:01'
 
 vlan_hdr = flow.packet[1]
 vlan_hdr.id.value = '100'
-vlan_hdr.priority = 5
 
 flow.rate.pps = 1000
 ```
+
+**Key VLAN rules:**
+- VLAN field is `id` (NOT `vlan_id`)
+- IPv4 addresses stay on the **Ethernet** interface, NOT nested under the VLAN object
+- `Device.Vlan` only has: `name`, `id`, `priority`, `tpid`
+- Flow `rx_names` is an array (NOT `rx_name` which is deprecated)
 
 ---
 
 ## 6. QinQ (Double-Tagged VLAN)
 
 ```python
-# Device with QinQ
+# Device with QinQ — both VLANs are FLAT entries in e.vlans (NOT nested)
 d = config.devices.device(name='qinq_device')[0]
 e = d.ethernets.ethernet()[0]
 e.connection.port_name = p1.name
+e.name = 'eth1'
+e.mac = '00:00:00:00:00:01'
 
-# Outer VLAN
+# Outer VLAN (first entry in vlans array)
 outer = e.vlans.vlan()[0]
-outer.vlan_id = 200
+outer.id = 200          # NOT vlan_id
+outer.name = 'outer_vlan'
 
-# Inner VLAN
-inner = outer.vlans.vlan()[0]
-inner.vlan_id = 300
+# Inner VLAN (second entry in vlans array — flat, NOT nested under outer)
+inner = e.vlans.vlan()[1]
+inner.id = 300
+inner.name = 'inner_vlan'
 
-# IP on inner VLAN
-i4 = inner.ipv4_addresses.ipv4()[0]
+# IPv4 stays on Ethernet (NOT on VLAN)
+i4 = e.ipv4_addresses.ipv4()[0]
+i4.name = 'ipv4_1'
 i4.address = '10.0.30.1'
+i4.gateway = '10.0.30.254'
+i4.prefix = 24
 
-# Flow with QinQ
+# Flow with QinQ headers
 flow = config.flows.flow(name='flow_qinq')[0]
 flow.packet.ethernet().vlan().vlan().ipv4()
 
 vlan1 = flow.packet[1]
-vlan1.id.value = '200'
+vlan1.id.value = '200'  # Outer
 
 vlan2 = flow.packet[2]
-vlan2.id.value = '300'
+vlan2.id.value = '300'  # Inner
 ```
+
+**Key QinQ rules:**
+- Both VLAN tags are **flat entries** in `e.vlans` array — NOT nested
+- Outer VLAN first, inner VLAN second
+- IPv4 addresses stay on Ethernet, NOT on any VLAN object
 
 ---
 
