@@ -46,7 +46,7 @@ Before generating any config, internalize these **exact** field names from the O
 | Bgp.V4Interface | `ipv4_name` | — | string (required, refs `Device.Ipv4.name`) |
 | Bgp.V4Interface | `peers` | ~~neighbors~~ | array of `Bgp.V4Peer` |
 | Bgp.V4Peer | `as_type` | — | string (required: `"ibgp"` or `"ebgp"`) |
-| Bgp.V4Peer | `as_number` | ~~asn~~, ~~as_num~~ | integer (required) |
+| Bgp.V4Peer | `as_number` | ~~asn~~, ~~as_num~~ | integer (required) — **LOCAL AS of this device** (NOT the remote peer's AS) |
 | Bgp.V4Peer | `peer_address` | — | string (ipv4, required) |
 | Bgp.V4Peer | `name` | — | string (required, globally unique) |
 | Flow | `tx_rx` | ~~tx_port~~, ~~rx_ports~~ | object (`Flow.TxRx`, required) |
@@ -64,9 +64,9 @@ Device.bgp                          ← single object (NOT an array)
   │       peers: [                  ← array of Bgp.V4Peer
   │         {
   │           name: "peer1"        ← required, globally unique
-  │           peer_address: "..."  ← required
+  │           peer_address: "..."  ← required (remote peer IP)
   │           as_type: "ebgp"      ← required (ibgp/ebgp)
-  │           as_number: 65002     ← required
+  │           as_number: 65001     ← LOCAL AS of THIS device (NOT the remote peer's AS)
   │           v4_routes: [...]     ← optional route advertisements
   │         }
   │       ]
@@ -133,7 +133,7 @@ Use these patterns from the OpenAPI spec:
             "name": "bgp_peer_1",
             "peer_address": "10.0.0.2",
             "as_type": "ebgp",
-            "as_number": 65002
+            "as_number": 65001
           }
         ]
       }
@@ -147,6 +147,7 @@ Key rules:
 - `bgp` is a **single object** (NOT an array)
 - There is NO `container_name` field — use `name` only
 - `ipv4_name` in `Bgp.V4Interface` MUST match a `Device.Ipv4.name` (e.g., `"ipv4_1"`)
+- `as_number` is the **LOCAL AS** of this device (what it advertises in BGP OPEN). It is NOT the remote peer's AS. Example: if device1 is AS 65001 peering with device2 (AS 65002), set `as_number: 65001` on device1's peer entry and `as_number: 65002` on device2's peer entry.
 - `as_type` is **required** on every peer: `"ebgp"` (different AS) or `"ibgp"` (same AS)
 
 **Traffic Flow** — Port-based flow:
@@ -483,7 +484,7 @@ peer with 10.0.0.1 AS 65001. Traffic from port1 to port2 at 1000 pps.
                 "name": "bgp_peer_1",
                 "peer_address": "10.0.0.2",
                 "as_type": "ebgp",
-                "as_number": 65002
+                "as_number": 65001
               }
             ]
           }
@@ -517,7 +518,7 @@ peer with 10.0.0.1 AS 65001. Traffic from port1 to port2 at 1000 pps.
                 "name": "bgp_peer_2",
                 "peer_address": "10.0.0.1",
                 "as_type": "ebgp",
-                "as_number": 65001
+                "as_number": 65002
               }
             ]
           }
@@ -545,6 +546,42 @@ peer with 10.0.0.1 AS 65001. Traffic from port1 to port2 at 1000 pps.
   ]
 }
 ```
+
+## Known Pitfalls (Validated Against ixia-c keng-controller:1.48.0-5)
+
+These have caused real test failures. Read before generating any BGP config.
+
+### BGP: as_number is the LOCAL AS, not the remote AS
+`as_number` on `Bgp.V4Peer` is the AS number **this device advertises in its BGP OPEN message** — its own local AS. It is NOT the peer's AS. There is no separate "expected remote AS" field in OTG.
+
+**Correct pattern for eBGP between AS 65001 and AS 65002:**
+```json
+// device1 (local AS 65001, peering toward device2 at 10.0.0.2)
+{ "peer_address": "10.0.0.2", "as_type": "ebgp", "as_number": 65001 }
+
+// device2 (local AS 65002, peering toward device1 at 10.0.0.1)
+{ "peer_address": "10.0.0.1", "as_type": "ebgp", "as_number": 65002 }
+```
+
+**Wrong (swapped values):** Setting `as_number: 65002` on device1 causes a BGP NOTIFICATION (AS mismatch) and sessions never establish.
+
+### BGP: Back-to-Back (B2B) — Set passive_mode on one side
+When both devices are emulated by ixia-c in a back-to-back topology (veth pair), both peers attempt to open TCP simultaneously, triggering BGP connection collision. The collision resolution sends a NOTIFICATION and the session flaps. Fix: set `passive_mode: true` on one peer so only the active side initiates TCP.
+
+```json
+// device2's peer — passive side (accepts incoming TCP only)
+{
+  "peer_address": "10.0.0.1",
+  "as_type": "ebgp",
+  "as_number": 65002,
+  "advanced": { "passive_mode": true }
+}
+```
+
+Only one side should be passive. The active side (no passive_mode) initiates the TCP connection.
+
+### Flow duration: prefer "continuous" over "fixed_seconds" for ixia-c
+`"duration": { "choice": "fixed_seconds", "fixed_seconds": { "seconds": N } }` causes the keng-controller (v1.48.0-5) to crash-restart when flows self-terminate. Use `"duration": { "choice": "continuous" }` instead and stop traffic programmatically from the test script after the desired duration.
 
 ## Edge Cases
 

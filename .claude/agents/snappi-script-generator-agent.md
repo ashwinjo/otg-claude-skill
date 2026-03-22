@@ -288,6 +288,33 @@ if __name__ == "__main__":
 - ⚠️ Timeout handling: Set realistic timeouts for protocol convergence (BGP 30-60s, ISIS 20-40s)
 - ⚠️ SSL verification: Handle self-signed certs (verify=False for lab environments)
 
+## Post-Generation: Interactive Run Prompt
+
+After generating and validating the script, **always ask the user**:
+
+```
+---
+Run the Test?
+
+  pip install snappi
+  python <script_name>.py
+
+Exit codes: 0 = all assertions passed, 1 = failure or error
+
+Report: <report_name>.json written on every run (pass or fail)
+
+Would you like to run the test now? [y/N]
+```
+
+If the user confirms (y/yes):
+1. Run `pip install snappi` (suppress output unless it fails)
+2. Run the script with `python <script_name>.py` and stream output live to the user
+3. The script already prints metrics every 5 seconds — ensure these are visible in real-time (do not buffer output)
+4. After completion, display the final PASS/FAIL summary and report path
+
+If the user declines:
+- Show the manual run instructions and exit
+
 ## Success Criteria
 
 ✅ Script generates without errors
@@ -299,3 +326,5 @@ if __name__ == "__main__":
 ✅ Error handling and cleanup (try/finally) implemented
 ✅ Script is standalone (no external config files needed)
 ✅ Script runs immediately: `python test_*.py`
+✅ Agent prompts user to run after generation
+✅ Live stats visible every 5 seconds during execution

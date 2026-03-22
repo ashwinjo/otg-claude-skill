@@ -181,9 +181,71 @@ Fixed version:
 | Data Handoff | 0 | — |
 | Other | 0 | — |
 
-**Total Issues:** 6 | **Fixed:** 6 | **Monitoring:** 0
+**Total Issues:** 9 | **Fixed:** 9 | **Monitoring:** 0
 
 ---
 
+### [Config Validation] BGP as_number is Local AS, Not Remote AS
+**Date:** 2026-03-22
+**Agent:** otg-config-generator-agent / snappi-script-generator-agent
+**Symptom:** BGP sessions flap and never reach Established. Metrics show opens/keepalives exchanged but notifications sent immediately after, returning to `connect` state.
+**Root Cause:** In OTG BGP peer schema, `as_number` is the **local AS** this device advertises in its OPEN message — not the remote peer's AS. Agent incorrectly set `as_number` to the remote peer's AS, causing each side to receive a mismatched AS number in the OPEN, triggering a NOTIFICATION and session teardown.
+**Solution:** Corrected `as_number` to match each device's own AS:
+- device_te1 (local AS 65001): `as_number = 65001`
+- device_te2 (local AS 65002): `as_number = 65002`
+**Prevention:** Always set `as_number` on a BGP peer = the local device's own AS. The remote AS is implicit from the eBGP peer relationship. Reference: `protocol_examples.md` shows `peer.as_number = 65001` on the device with AS 65001.
+**Status:** ✅ Fixed
+
+### [CLI/API] snappi ControlState.Protocol attribute does not exist
+**Date:** 2026-03-22
+**Agent:** snappi-script-generator-agent
+**Symptom:** `AttributeError: type object 'ControlState' has no attribute 'Protocol'` when calling `set_control_state` to start/stop protocols.
+**Root Cause:** Generated code used `snappi.ControlState.Protocol.start` which does not exist. The correct API uses `cs.protocol.choice = cs.protocol.ALL` + `cs.protocol.all.state = cs.protocol.all.START`.
+**Solution:**
+```python
+cs = snappi.ControlState()
+cs.protocol.choice = cs.protocol.ALL
+cs.protocol.all.state = cs.protocol.all.START  # or .STOP
+api.set_control_state(cs)
+```
+**Prevention:** Always use `cs.protocol.ALL` choice with `cs.protocol.all.state` for bulk protocol start/stop. Never reference `snappi.ControlState.Protocol` as a class attribute.
+**Status:** ✅ Fixed
+
+### [Deployment] docker cp config.yaml sets wrong file permissions
+**Date:** 2026-03-22
+**Agent:** ixia-c-deployment-agent
+**Symptom:** Controller returns HTTP 500: `permission denied` on `/home/ixia-c/controller/config/config.yaml` when pushing OTG config.
+**Root Cause:** `docker cp` copies the file as root with mode 600, but the controller process runs as a non-root user that cannot read it.
+**Solution:** After `docker cp`, run `sudo docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml`
+**Prevention:** Always add `chmod 644` step in `setup-ixia-c-bgp.sh` immediately after `docker cp` of the config file.
+**Status:** ✅ Fixed
+
+---
+
+---
+
+## Promotion Workflow
+
+fixes.md is the **first-catch log**. Once a fix is validated, it must be promoted upstream so agents don't have to rediscover it from this file alone.
+
+**Promotion checklist (run after every new entry):**
+1. Add entry to fixes.md (done first, always)
+2. Identify which skill/agent owns the bug:
+   - Config generation bugs → `.claude/skills/otg-config-generator/SKILL.md`
+   - Script generation bugs → `.claude/skills/snappi-script-generator/SKILL.md`
+   - Deployment bugs → `.claude/skills/ixia-c-deployment/SKILL.md`
+   - Runtime/API bugs → the relevant skill's Known Pitfalls section
+3. Add to the "Known Pitfalls" section of that SKILL.md with: symptom, wrong pattern, correct pattern
+4. If the skill has a canonical code example that contains the bug, fix the example too
+5. Mark the fixes.md entry with `**Promoted:** SKILL.md` so future readers know it's upstream
+
+**Promoted fixes (2026-03-22):**
+- BGP `as_number` is local AS → `otg-config-generator/SKILL.md` Known Pitfalls + all examples corrected
+- `ControlState` API → `snappi-script-generator/SKILL.md` Known Pitfalls + template code corrected
+- `session_state == "up"` → `snappi-script-generator/SKILL.md` Known Pitfalls + template code corrected
+- `fixed_seconds` crashes controller → both `otg-config-generator/SKILL.md` and `snappi-script-generator/SKILL.md` Known Pitfalls
+- B2B BGP collision → `otg-config-generator/SKILL.md` Known Pitfalls + `ixia-c-deployment/SKILL.md` troubleshooting table
+- `docker cp` permissions → `ixia-c-deployment/SKILL.md` troubleshooting table + `snappi-script-generator/SKILL.md` Known Pitfalls
+
 ## Last Updated
-2026-03-21 (schema audit — 6 issues fixed across otg-config-generator and snappi-script-generator)
+2026-03-22 (runtime fixes promoted to SKILL.md files; promotion workflow documented)

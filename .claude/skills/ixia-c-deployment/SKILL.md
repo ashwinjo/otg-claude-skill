@@ -114,6 +114,8 @@ Port `location` values must match the `location` in the controller's `location_m
 | `No test interfaces were specified` | Wrong env var name | Use `ARG_IFACE_LIST` not `VIRTUAL_INTERFACE` |
 | Protocols not starting | Protocol engine not deployed or wrong netns | PE must use `network_mode: container:<te>` + `INTF_LIST` |
 | Port location not found | `location_map` not injected | See `ref-controller-config.md` |
+| HTTP 500 `permission denied` on `/config` push | `docker cp` creates config.yaml as root (mode 600), controller process can't read it | After `docker cp`, run: `sudo docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml` |
+| BGP sessions flap / never establish in B2B | Connection collision — both emulated peers open TCP simultaneously | Set `"advanced": { "passive_mode": true }` on one peer in the OTG config so only one side initiates TCP |
 
 ---
 

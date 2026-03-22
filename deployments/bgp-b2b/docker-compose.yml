@@ -1,0 +1,80 @@
+---
+# Ixia-c BGP B2B Deployment — CP+DP (Control Plane + Data Plane)
+# Use case: BGP back-to-back testing with 2 traffic engines
+# Topology: veth-a <-> veth-z (pushed into container namespaces after startup)
+#
+# Services:
+#   keng-controller          — OTG API controller (https://localhost:8443)
+#   ixia-c-traffic-engine-a  — Traffic engine A (port location: veth-a)
+#   ixia-c-protocol-engine-a — Protocol engine A (BGP, shares TE-A netns)
+#   ixia-c-traffic-engine-z  — Traffic engine Z (port location: veth-z)
+#   ixia-c-protocol-engine-z — Protocol engine Z (BGP, shares TE-Z netns)
+#
+# Start: sudo docker compose up -d
+# Then:  sudo bash setup-veth.sh
+# Stop:  sudo docker compose down
+
+services:
+
+  keng-controller:
+    image: ghcr.io/open-traffic-generator/keng-controller:latest
+    container_name: keng-controller
+    command: --accept-eula --disable-app-usage-reporter
+    ports:
+      - "8443:8443"
+      - "40051:40051"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8443"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  ixia-c-traffic-engine-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-traffic-engine-a
+    privileged: true
+    environment:
+      - OPT_LISTEN_PORT=5555
+      - ARG_IFACE_LIST=virtual@af_packet,veth-a
+      - OPT_NO_HUGEPAGES=Yes
+      - OPT_NO_PINNING=Yes
+      - OPT_ADAPTIVE_CPU_USAGE=Yes
+      - WAIT_FOR_IFACE=Yes
+    restart: unless-stopped
+
+  ixia-c-protocol-engine-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:latest
+    container_name: ixia-c-protocol-engine-a
+    privileged: true
+    network_mode: service:ixia-c-traffic-engine-a
+    environment:
+      - INTF_LIST=veth-a
+    depends_on:
+      - ixia-c-traffic-engine-a
+    restart: unless-stopped
+
+  ixia-c-traffic-engine-z:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-traffic-engine-z
+    privileged: true
+    environment:
+      - OPT_LISTEN_PORT=5555
+      - ARG_IFACE_LIST=virtual@af_packet,veth-z
+      - OPT_NO_HUGEPAGES=Yes
+      - OPT_NO_PINNING=Yes
+      - OPT_ADAPTIVE_CPU_USAGE=Yes
+      - WAIT_FOR_IFACE=Yes
+    restart: unless-stopped
+
+  ixia-c-protocol-engine-z:
+    image: ghcr.io/open-traffic-generator/ixia-c-protocol-engine:latest
+    container_name: ixia-c-protocol-engine-z
+    privileged: true
+    network_mode: service:ixia-c-traffic-engine-z
+    environment:
+      - INTF_LIST=veth-z
+    depends_on:
+      - ixia-c-traffic-engine-z
+    restart: unless-stopped

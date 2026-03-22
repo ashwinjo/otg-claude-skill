@@ -257,8 +257,11 @@ def start_protocols(api, config, wait_time=30, expected_bgp_sessions=0):
             return
 
         # Start all protocols
+        # CORRECT API: use cs.protocol.choice + cs.protocol.all.state
+        # WRONG (will raise AttributeError): snappi.ControlState.Protocol.start
         state = snappi.ControlState()
-        state.protocol.state = snappi.ControlState.Protocol.start
+        state.protocol.choice = state.protocol.ALL
+        state.protocol.all.state = state.protocol.all.START
         api.set_control_state(state)
 
         if expected_bgp_sessions > 0:
@@ -288,7 +291,7 @@ def get_bgp_session_count(api):
         for metric in resp.device_metrics:
             if hasattr(metric, 'bgp_session'):
                 for session in metric.bgp_session:
-                    if session.session_state == 'up':
+                    if session.session_state in ('up', 'established'):
                         bgp_up += 1
         return bgp_up
     except:
@@ -430,7 +433,8 @@ def stop_protocols(api):
     print("\n[Step 7] Stopping protocols...")
     try:
         state = snappi.ControlState()
-        state.protocol.state = snappi.ControlState.Protocol.stop
+        state.protocol.choice = state.protocol.ALL
+        state.protocol.all.state = state.protocol.all.STOP
         api.set_control_state(state)
         print("✓ Protocols stopped")
     except Exception as e:
@@ -637,6 +641,42 @@ Infrastructure: Lab with controller + 2 ports
 Assertions: BGP route count > 500, convergence time < 60s
 Duration: 120 seconds
 Flow: Traffic to specific route (e.g., 10.0.0.0/24)
+```
+
+## Known Pitfalls (Validated Against ixia-c keng-controller:1.48.0-5)
+
+Apply these rules to every generated script — they have caused real test failures.
+
+### ControlState API: use .choice + .all.state, not .Protocol class attribute
+```python
+# CORRECT
+cs = snappi.ControlState()
+cs.protocol.choice = cs.protocol.ALL
+cs.protocol.all.state = cs.protocol.all.START  # or .STOP
+api.set_control_state(cs)
+
+# WRONG — AttributeError: type object 'ControlState' has no attribute 'Protocol'
+cs.protocol.state = snappi.ControlState.Protocol.start  # DO NOT USE
+```
+
+### BGPv4 session_state value is "up", not "established"
+When polling `get_metrics(req.BGPV4)`, the `session_state` field returns `"up"` (not `"established"`) on ixia-c. Always check for both to be safe:
+```python
+if m.session_state in ("up", "established"):
+    bgp_up += 1
+```
+
+### Flow duration: always use "continuous", stop traffic manually
+`fixed_seconds` duration causes keng-controller (v1.48.0-5) to crash-restart when flows self-terminate, dropping the API connection mid-test. Use `continuous` duration and stop traffic programmatically:
+```python
+# In OTG config: "duration": { "choice": "continuous" }
+# In script: run metrics loop for desired duration, then call stop_traffic()
+```
+
+### docker cp config.yaml: always chmod 644 after copy
+If the deployment script uses `docker cp` to inject `config.yaml` into the controller container, the file lands with mode 600 (root-owned, not readable by the controller process). The controller returns HTTP 500 `permission denied`. Always run after copy:
+```bash
+sudo docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml
 ```
 
 ## Error Handling
