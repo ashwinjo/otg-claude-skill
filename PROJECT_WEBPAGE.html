@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENG OTG Plugin — Network Test Automation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1e1e1e;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        header {
+            background: linear-gradient(135deg, #4a9eed 0%, #8b5cf6 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        nav {
+            background: white;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: #4a9eed;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: #f0f4f8;
+            color: #2563eb;
+        }
+
+        section {
+            background: white;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #4a9eed;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #4a9eed;
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            color: #8b5cf6;
+            margin-top: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #4a9eed;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card.command-section-c {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .card.command-section-a {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+        }
+
+        .card.command-section-b {
+            border-left-color: #d97706;
+            background: linear-gradient(135deg, #f9a825 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .card.command-section-b h4 {
+            color: white;
+        }
+
+        .card.agent {
+            border-left-color: #8b5cf6;
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+        }
+
+        .card.skill {
+            border-left-color: #22c55e;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .card h4 {
+            color: #1e1e1e;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .command-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .command-table th {
+            background: #4a9eed;
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .command-table td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .command-table tr:hover {
+            background: #f5f7fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge.section-c {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.section-a {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge.section-b {
+            background: #fca5a5;
+            color: #7c2d12;
+        }
+
+        .badge.agent {
+            background: #e9d5ff;
+            color: #5b21b6;
+        }
+
+        .badge.skill {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .workflow {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border: 2px solid #e5e7eb;
+        }
+
+        .workflow h4 {
+            color: #4a9eed;
+            margin-bottom: 0.8rem;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            background: #4a9eed;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .architecture-diagram {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .diagram-placeholder {
+            background: white;
+            padding: 2rem;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-table th {
+            background: #f3f4f6;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .comparison-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 1.5rem;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        .highlight.warning {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+        }
+
+        .highlight.success {
+            background: #dcfce7;
+            border-left-color: #22c55e;
+        }
+
+        code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            color: #e5e7eb;
+            padding: 0;
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                flex-direction: column;
+            }
+
+            nav a {
+                display: block;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 KENG OTG Plugin</h1>
+        <p>Vendor-Neutral Network Test Automation — Production-Ready Skills & Intelligent Agents</p>
+    </header>
+
+    <div class="container">
+        <nav>
+            <a href="#overview">Overview</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#commands">Commands</a>
+            <a href="#agents">Agents</a>
+            <a href="#skills">Skills</a>
+            <a href="#workflows">Workflows</a>
+            <a href="#quick-start">Quick Start</a>
+        </nav>
+
+        <section id="overview">
+            <h2>Project Overview</h2>
+            <p style="font-size: 1.1rem; color: #555; margin-bottom: 1rem;">
+                A comprehensive network test automation toolkit that converts IxNetwork configs to OTG format,
+                generates traffic test configurations from natural language, creates executable test scripts,
+                deploys Ixia-c infrastructure, and recommends licensing strategies.
+            </p>
+
+            <h3>Five Production-Ready Skills</h3>
+            <div class="grid">
+                <div class="card skill">
+                    <h4>🔄 ixnetwork-to-keng-converter</h4>
+                    <p><strong>Migrate</strong> IxNetwork configurations to OTG format with feasibility analysis.</p>
+                    <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Detects unsupported features, generates OTG JSON, provides conversion report.</p>
+                </div>
+
+                <div class="card skill">
+                    <h4>🎯 otg-config-generator</h4>
+                    <p><strong>Generate</strong> OTG configurations from natural language test descriptions.</p>
+                    <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">BGP, ISIS, LACP, LLDP protocols. Validates against OTG schema.</p>
+                </div>
+
+                <div class="card skill">
+                    <h4>🐍 snappi-script-generator</h4>
+                    <p><strong>Create</strong> standalone Python Snappi test scripts from OTG configs.</p>
+                    <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Self-contained, production-ready. Metrics, assertions, error handling.</p>
+                </div>
+
+                <div class="card skill">
+                    <h4>🚀 ixia-c-deployment</h4>
+                    <p><strong>Deploy</strong> Ixia-c infrastructure (Docker Compose, Containerlab).</p>
+                    <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Manages veth pairs, controller health, port discovery.</p>
+                </div>
+
+                <div class="card skill">
+                    <h4>💰 keng-licensing</h4>
+                    <p><strong>Recommend</strong> licensing tiers and calculate costs (DPLU/CPLU).</p>
+                    <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Developer, Team, System. Per-port and per-protocol pricing.</p>
+                </div>
+            </div>
+
+            <h3>Four Intelligent Subagents</h3>
+            <div class="grid">
+                <div class="card agent">
+                    <h4>🔵 ixia-c-deployment-agent</h4>
+                    <p><strong>Infrastructure Provisioner</strong> — Analyzes requirements, generates Docker/Containerlab manifests, manages veth setup, validates health.</p>
+                </div>
+
+                <div class="card agent">
+                    <h4>🟢 otg-config-generator-agent</h4>
+                    <p><strong>Intent Translator</strong> — Parses test scenarios, injects port locations, generates OTG JSON, validates against schema.</p>
+                </div>
+
+                <div class="card agent">
+                    <h4>🟣 snappi-script-generator-agent</h4>
+                    <p><strong>Script Executor</strong> — Converts OTG configs to Python scripts, embeds infrastructure details, adds error handling & reporting.</p>
+                </div>
+
+                <div class="card agent">
+                    <h4>🟠 keng-licensing-agent</h4>
+                    <p><strong>Licensing Advisor</strong> — Calculates DPLU/CPLU costs, recommends tiers, provides cost breakdowns with SE disclaimers.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>Architecture Overview</h2>
+
+            <div class="highlight">
+                <strong>Core Pattern:</strong> <code>/command</code> → <code>Agent(s)</code> → <code>Skill(s)</code> → <code>Output</code>
+                <br>Claude orchestrates specialized agents; agents invoke skills; skills execute the work.
+            </div>
+
+            <h3>Three-Tier Command Framework (16 Total)</h3>
+
+            <div style="margin-top: 1.5rem;">
+                <h4 style="color: #f59e0b; margin-bottom: 1rem;">Section C: Help & Discovery (7 commands)</h4>
+                <p style="margin-bottom: 1rem;">Onboarding, exploration, learning. <strong>Use when:</strong> New to plugin, need examples, want to understand architecture.</p>
+                <div class="grid">
+                    <div class="card command-section-c">
+                        <h4>/kengotg-keng-help</h4>
+                        <p>Plugin overview & quick start guide</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-show-skills</h4>
+                        <p>List all 5 skills with descriptions</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-show-agents</h4>
+                        <p>List all 4 agents & orchestration</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-show-architecture</h4>
+                        <p>Architecture diagrams & patterns</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-examples</h4>
+                        <p>8 real-world workflow examples</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-skill-help</h4>
+                        <p>Detailed skill documentation</p>
+                    </div>
+                    <div class="card command-section-c">
+                        <h4>/kengotg-eval-agents</h4>
+                        <p>Agent evaluation framework (20 Q)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h4 style="color: #f59e0b; margin-bottom: 1rem;">Section A: Skill Shortcuts (5 commands)</h4>
+                <p style="margin-bottom: 1rem;">Quick wrappers with sensible defaults. <strong>Use when:</strong> Want quick invocation, not full customization.</p>
+                <div class="grid">
+                    <div class="card command-section-a">
+                        <h4>/kengotg-otg-gen</h4>
+                        <p>Quick OTG config generation</p>
+                    </div>
+                    <div class="card command-section-a">
+                        <h4>/kengotg-snappi-script</h4>
+                        <p>Quick Snappi script generation</p>
+                    </div>
+                    <div class="card command-section-a">
+                        <h4>/kengotg-deploy-ixia</h4>
+                        <p>Quick Ixia-c deployment</p>
+                    </div>
+                    <div class="card command-section-a">
+                        <h4>/kengotg-licensing</h4>
+                        <p>Quick licensing check</p>
+                    </div>
+                    <div class="card command-section-a">
+                        <h4>/kengotg-migrate-ix</h4>
+                        <p>Quick IxNetwork migration</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h4 style="color: #d97706; margin-bottom: 1rem;">Section B: Workflow Commands (4 commands)</h4>
+                <p style="margin-bottom: 1rem;">End-to-end orchestration. <strong>Use when:</strong> Need full workflow, multiple agent choreography.</p>
+                <div class="grid">
+                    <div class="card command-section-b">
+                        <h4>/kengotg-create-test</h4>
+                        <p>Full pipeline (deploy → config → script)</p>
+                    </div>
+                    <div class="card command-section-b">
+                        <h4>/kengotg-quick-bgp-test</h4>
+                        <p>BGP test with optimized defaults</p>
+                    </div>
+                    <div class="card command-section-b">
+                        <h4>/kengotg-migrate-and-run</h4>
+                        <p>IxNetwork migration + execution</p>
+                    </div>
+                    <div class="card command-section-b">
+                        <h4>/kengotg-check-licensing</h4>
+                        <p>Complete licensing evaluation</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="commands">
+            <h2>Commands in Detail</h2>
+
+            <h3>Section C: Help & Discovery (7 commands)</h3>
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Purpose</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/kengotg-keng-help</code></td>
+                        <td>Plugin overview, quick start</td>
+                        <td>New users, feature overview</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-show-skills</code></td>
+                        <td>List all 5 skills</td>
+                        <td>Discover skill capabilities</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-show-agents</code></td>
+                        <td>List all 4 agents</td>
+                        <td>Understand agent responsibilities</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-show-architecture</code></td>
+                        <td>Architecture diagrams</td>
+                        <td>Deep dive into design</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-examples</code></td>
+                        <td>8 workflow examples</td>
+                        <td>See real scenarios</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-skill-help</code></td>
+                        <td>Detailed skill docs</td>
+                        <td>Technical reference</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-eval-agents</code></td>
+                        <td>Agent evaluation (20 Q)</td>
+                        <td>Test agent quality</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Section A: Skill Shortcuts (5 commands)</h3>
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Invokes</th>
+                        <th>Input</th>
+                        <th>Output</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/kengotg-otg-gen</code></td>
+                        <td>otg-config-generator</td>
+                        <td>Test description</td>
+                        <td>otg_config.json</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-snappi-script</code></td>
+                        <td>snappi-script-generator</td>
+                        <td>OTG config</td>
+                        <td>test_xxx.py</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-deploy-ixia</code></td>
+                        <td>ixia-c-deployment</td>
+                        <td>Deployment type</td>
+                        <td>docker-compose.yml / topo.yml</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-licensing</code></td>
+                        <td>keng-licensing</td>
+                        <td>Port/protocol count</td>
+                        <td>License recommendation + costs</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-migrate-ix</code></td>
+                        <td>ixnetwork-to-keng-converter</td>
+                        <td>IxNetwork config</td>
+                        <td>OTG config + report</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Section B: Workflow Commands (4 commands)</h3>
+            <table class="command-table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Orchestrates</th>
+                        <th>Agent Sequence</th>
+                        <th>For Users Who Want</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/kengotg-create-test</code></td>
+                        <td>Full pipeline</td>
+                        <td>deploy → config → script</td>
+                        <td>Complete end-to-end test setup</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-quick-bgp-test</code></td>
+                        <td>BGP + deployment</td>
+                        <td>deploy → config (BGP) → script</td>
+                        <td>BGP convergence test (fast)</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-migrate-and-run</code></td>
+                        <td>Migration + execution</td>
+                        <td>convert → config → script → run</td>
+                        <td>Migrate IxNetwork + test</td>
+                    </tr>
+                    <tr>
+                        <td><code>/kengotg-check-licensing</code></td>
+                        <td>Cost + recommendation</td>
+                        <td>licensing (standalone)</td>
+                        <td>Licensing evaluation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="agents">
+            <h2>Intelligent Agents (4)</h2>
+
+            <div class="workflow">
+                <h4>🔵 ixia-c-deployment-agent</h4>
+                <p><strong>Role:</strong> Infrastructure Provisioner</p>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Responsibilities:</h5>
+                <ul class="feature-list">
+                    <li>Analyze deployment requirements (Docker Compose vs Containerlab)</li>
+                    <li>Generate infrastructure manifests (docker-compose.yml, topo.clab.yml)</li>
+                    <li>Configure veth pairs, network namespaces, controller locations</li>
+                    <li>Validate controller health and port connectivity</li>
+                    <li>Return port mapping for downstream agents</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Success Criteria:</h5>
+                <ul class="feature-list">
+                    <li>Controller reachable and healthy</li>
+                    <li>All ports discoverable</li>
+                    <li>Port mapping in standardized format</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Invoke:</h5>
+                <pre><code>@ixia-c-deployment-agent Deploy Ixia-c with Docker Compose for BGP testing</code></pre>
+            </div>
+
+            <div class="workflow">
+                <h4>🟢 otg-config-generator-agent</h4>
+                <p><strong>Role:</strong> Intent Translator (Natural Language → OTG Config)</p>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Responsibilities:</h5>
+                <ul class="feature-list">
+                    <li>Parse test scenario descriptions</li>
+                    <li>Validate protocol and feature support</li>
+                    <li>Inject port locations from deployment agent</li>
+                    <li>Generate standards-compliant OTG JSON</li>
+                    <li>Align port names with infrastructure locations</li>
+                    <li>Validate against OTG schema</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Success Criteria:</h5>
+                <ul class="feature-list">
+                    <li>OTG config validates against schema</li>
+                    <li>All ports align with infrastructure</li>
+                    <li>Device/flow/assertion definitions complete</li>
+                    <li>Config is production-ready</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Invoke:</h5>
+                <pre><code>@otg-config-generator-agent Create BGP test: 2 ports, AS 65001/65002, 1000 pps bidirectional</code></pre>
+            </div>
+
+            <div class="workflow">
+                <h4>🟣 snappi-script-generator-agent</h4>
+                <p><strong>Role:</strong> Script Executor (OTG Config → Executable Python)</p>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Responsibilities:</h5>
+                <ul class="feature-list">
+                    <li>Generate standalone Python Snappi scripts</li>
+                    <li>Embed OTG config and infrastructure details</li>
+                    <li>Implement protocol setup, traffic control, state polling</li>
+                    <li>Add assertions, metrics collection, error handling</li>
+                    <li>Generate cleanup and JSON reporting logic</li>
+                    <li>Validate script syntax and Snappi imports</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Success Criteria:</h5>
+                <ul class="feature-list">
+                    <li>Script executes without external config files</li>
+                    <li>Error handling covers connection/timeout/protocol failures</li>
+                    <li>Metrics and assertions properly integrated</li>
+                    <li>JSON report generated with clear results</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Invoke:</h5>
+                <pre><code>@snappi-script-generator-agent Generate Snappi script from bgp_convergence.json</code></pre>
+            </div>
+
+            <div class="workflow">
+                <h4>🟠 keng-licensing-agent</h4>
+                <p><strong>Role:</strong> Licensing Advisor</p>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Responsibilities:</h5>
+                <ul class="feature-list">
+                    <li>Calculate data plane costs (KENG-DPLU) based on port speeds</li>
+                    <li>Calculate control plane costs (KENG-CPLU) based on session count</li>
+                    <li>Recommend license tier (Developer/Team/System)</li>
+                    <li>Provide cost breakdown and tier comparison</li>
+                    <li>Include Solutions Engineer disclaimers</li>
+                    <li>Validate licensing assumptions</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Success Criteria:</h5>
+                <ul class="feature-list">
+                    <li>Cost calculations accurate (DPLU/CPLU formulas)</li>
+                    <li>Recommendations match user requirements</li>
+                    <li>Tier comparison is complete</li>
+                    <li>SE disclaimer included</li>
+                </ul>
+
+                <h5 style="color: #4a9eed; margin-top: 1rem;">Invoke:</h5>
+                <pre><code>@keng-licensing-agent What license do I need for 4×100GE + 8 BGP sessions?</code></pre>
+            </div>
+        </section>
+
+        <section id="skills">
+            <h2>Production Skills (5)</h2>
+
+            <h3>1. ixnetwork-to-keng-converter</h3>
+            <div class="workflow">
+                <p><strong>Purpose:</strong> Migrate IxNetwork configurations to Open Traffic Generator (OTG) format</p>
+
+                <h5>Use When:</h5>
+                <ul class="feature-list">
+                    <li>Migrating from IxNetwork to Ixia-c/KENG</li>
+                    <li>Converting IxNetwork RestPy code to OTG JSON</li>
+                    <li>Checking IxNetwork config feasibility for KENG</li>
+                </ul>
+
+                <h5>Input/Output:</h5>
+                <p><strong>Input:</strong> IxNetwork config (Python code or JSON)<br>
+                   <strong>Output:</strong> OTG JSON config + conversion report</p>
+
+                <h5>Quick Start:</h5>
+                <pre><code>/ixnetwork-to-keng-converter</code></pre>
+            </div>
+
+            <h3>2. otg-config-generator</h3>
+            <div class="workflow">
+                <p><strong>Purpose:</strong> Convert natural language test intent → Open Traffic Generator JSON configuration</p>
+
+                <h5>Use When:</h5>
+                <ul class="feature-list">
+                    <li>Creating test scenarios from descriptions</li>
+                    <li>Generating OTG configs without writing JSON</li>
+                    <li>Setting up BGP, OSPF, LACP, LLDP, or other protocol tests</li>
+                    <li>Configuring traffic flows, ports, and assertions</li>
+                </ul>
+
+                <h5>Input/Output:</h5>
+                <p><strong>Input:</strong> Test scenario description (plain English)<br>
+                   <strong>Output:</strong> otg_config.json + summary</p>
+
+                <h5>Quick Start:</h5>
+                <pre><code>/otg-config-generator
+Create a BGP test with 2 ports, AS 65001 and 65002, 1000 pps bidirectional traffic</code></pre>
+            </div>
+
+            <h3>3. snappi-script-generator</h3>
+            <div class="workflow">
+                <p><strong>Purpose:</strong> Convert OTG configurations → standalone, executable Python Snappi test scripts</p>
+
+                <h5>Use When:</h5>
+                <ul class="feature-list">
+                    <li>Generating runnable test scripts from OTG configs</li>
+                    <li>Creating production-ready test automation</li>
+                    <li>Need error handling, metrics, and assertions</li>
+                    <li>Want self-contained scripts (no external config files)</li>
+                </ul>
+
+                <h5>Input/Output:</h5>
+                <p><strong>Input:</strong> OTG config JSON + infrastructure YAML<br>
+                   <strong>Output:</strong> test_xxx.py (executable)</p>
+
+                <h5>Quick Start:</h5>
+                <pre><code>/snappi-script-generator</code></pre>
+            </div>
+
+            <h3>4. ixia-c-deployment</h3>
+            <div class="workflow">
+                <p><strong>Purpose:</strong> Deploy and configure Ixia-c (containerized traffic generator) infrastructure</p>
+
+                <h5>Use When:</h5>
+                <ul class="feature-list">
+                    <li>Setting up Ixia-c for testing</li>
+                    <li>Choosing between Docker Compose or Containerlab</li>
+                    <li>Creating veth pairs, configuring controllers</li>
+                    <li>Need port mappings for downstream agents</li>
+                </ul>
+
+                <h5>Input/Output:</h5>
+                <p><strong>Input:</strong> Deployment topology (Docker, Containerlab)<br>
+                   <strong>Output:</strong> docker-compose.yml or topo.clab.yml + port mapping</p>
+
+                <h5>Quick Start:</h5>
+                <pre><code>/ixia-c-deployment
+Deploy Ixia-c with Docker Compose for BGP testing</code></pre>
+            </div>
+
+            <h3>5. keng-licensing</h3>
+            <div class="workflow">
+                <p><strong>Purpose:</strong> Calculate licensing costs and recommend license tiers</p>
+
+                <h5>Use When:</h5>
+                <ul class="feature-list">
+                    <li>Planning test infrastructure costs</li>
+                    <li>Choosing between Developer/Team/System licenses</li>
+                    <li>Need cost estimates (DPLU/CPLU calculations)</li>
+                    <li>Evaluating ROI for KENG purchase</li>
+                </ul>
+
+                <h5>Input/Output:</h5>
+                <p><strong>Input:</strong> Port count, protocol session count, use case<br>
+                   <strong>Output:</strong> License recommendation + cost breakdown</p>
+
+                <h5>Quick Start:</h5>
+                <pre><code>/keng-licensing
+What license do I need for 4×100GE ports with 8 BGP sessions?</code></pre>
+            </div>
+        </section>
+
+        <section id="workflows">
+            <h2>Orchestration Patterns</h2>
+
+            <h3>Pattern 1: Greenfield — Full Pipeline</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Deploy</strong> → <strong>Generate Config</strong> → <strong>Generate Script</strong>
+                </p>
+                <p><strong>Use when:</strong> "Create BGP test + deploy + script"</p>
+                <p><strong>Agent Sequence:</strong> ixia-c-deployment-agent → otg-config-generator-agent → snappi-script-generator-agent</p>
+                <p style="margin-top: 1rem; color: #666;">All three agents run sequentially. Port mapping from deployment feeds into config generation. Config feeds into script generation.</p>
+            </div>
+
+            <h3>Pattern 2: Existing Infrastructure</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Generate Config</strong> → <strong>Generate Script</strong>
+                </p>
+                <p><strong>Use when:</strong> "I have ixia-c at localhost:8443; create test"</p>
+                <p><strong>Agent Sequence:</strong> otg-config-generator-agent → snappi-script-generator-agent</p>
+                <p style="margin-top: 1rem; color: #666;">Skip deployment. Provide known port locations directly to config generator.</p>
+            </div>
+
+            <h3>Pattern 3: Parallel — Deploy + Licensing</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Deploy</strong> + <strong>Licensing</strong> (parallel) → <strong>Config</strong> → <strong>Script</strong>
+                </p>
+                <p><strong>Use when:</strong> "Full test setup + license cost check"</p>
+                <p><strong>Agent Sequence:</strong> ixia-c-deployment-agent ∥ keng-licensing-agent → otg-config-generator-agent → snappi-script-generator-agent</p>
+                <p style="margin-top: 1rem; color: #666;">Both deployment and licensing run simultaneously, then reconverge at config generation.</p>
+            </div>
+
+            <h3>Pattern 4: Licensing Only</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Licensing</strong> (standalone)
+                </p>
+                <p><strong>Use when:</strong> "What license for 4×100GE + 8 BGP?"</p>
+                <p><strong>Agent Sequence:</strong> keng-licensing-agent</p>
+                <p style="margin-top: 1rem; color: #666;">Single agent, standalone cost estimation.</p>
+            </div>
+
+            <h3>Pattern 5: Migration — IxNetwork → OTG</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Convert</strong> → <strong>Generate Config</strong> → <strong>Generate Script</strong>
+                </p>
+                <p><strong>Use when:</strong> "Migrate IxNetwork config to OTG + run test"</p>
+                <p><strong>Skill Sequence:</strong> ixnetwork-to-keng-converter → otg-config-generator → snappi-script-generator</p>
+                <p style="margin-top: 1rem; color: #666;">Conversion skill outputs OTG JSON, which feeds into config generator, then script generator.</p>
+            </div>
+
+            <h3>Pattern 6: Config Only</h3>
+            <div class="workflow">
+                <p style="margin-bottom: 1rem;">
+                    <strong>Generate Config</strong> (standalone)
+                </p>
+                <p><strong>Use when:</strong> "Generate OTG config from description"</p>
+                <p><strong>Agent Sequence:</strong> otg-config-generator-agent</p>
+                <p style="margin-top: 1rem; color: #666;">Single agent produces OTG JSON. No deployment, no script generation.</p>
+            </div>
+
+            <h3>⚠️ Critical: Port Alignment</h3>
+            <div class="highlight warning">
+                <strong>After deployment, ALWAYS extract port_mapping and inject into config generator.</strong>
+                <br><br>
+                <strong>Port locations vary by deployment type:</strong>
+                <ul style="margin-top: 1rem;">
+                    <li><strong>Docker Compose (host network):</strong> veth-a, veth-z (or custom veth names)</li>
+                    <li><strong>Docker Compose (port mapping):</strong> localhost:5555, localhost:5556</li>
+                    <li><strong>Containerlab:</strong> eth1, eth2 (or topology-defined names)</li>
+                </ul>
+                <br>
+                <strong>Misalignment → HTTP 400 "location not found" error.</strong>
+            </div>
+        </section>
+
+        <section id="quick-start">
+            <h2>Quick Start Paths</h2>
+
+            <h3>Path 1: New User (5 min)</h3>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div>/kengotg-keng-help</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div>/kengotg-show-skills</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div>/kengotg-examples</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">4</div>
+                    <div>Pick a matching example → invoke it</div>
+                </div>
+            </div>
+
+            <h3>Path 2: Quick BGP Test (10 min)</h3>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div>/kengotg-quick-bgp-test</div>
+                </div>
+                <p style="color: #666; margin-top: 1rem;">One-liner. Deploys infrastructure + generates config + creates script + ready to run.</p>
+            </div>
+
+            <h3>Path 3: Full Pipeline (15 min)</h3>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div>/kengotg-create-test</div>
+                </div>
+                <p style="color: #666; margin-top: 1rem;">Guided workflow. Asks for test scenario, deployment type, licensing check. Returns Docker/script ready to run.</p>
+            </div>
+
+            <h3>Path 4: Direct Agent Invocation (Advanced)</h3>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div>@ixia-c-deployment-agent Deploy Ixia-c with Docker Compose for BGP</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div>@otg-config-generator-agent Create BGP: 2 ports, AS 65001/65002</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div>@snappi-script-generator-agent Generate script from bgp_config.json</div>
+                </div>
+                <p style="color: #666; margin-top: 1rem;">Full control. Invoke agents individually, customize at each step.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>Key Learning: fixes.md</h2>
+
+            <div class="highlight success">
+                <strong>The project includes a learning system:</strong> <code>fixes.md</code> documents all discovered issues, root causes, and solutions.
+                <br><br>
+                Future agents read <code>fixes.md</code> at session start and learn from past mistakes automatically.
+                <br><br>
+                <strong>Example:</strong> When the agent encounters a port location mismatch, it checks fixes.md, finds the lesson, and prevents the mistake.
+            </div>
+
+            <h3>Critical Architecture Rules (from fixes.md)</h3>
+            <ul class="feature-list">
+                <li><strong>Never use ixia-c-one for Docker Compose</strong> — Only for Containerlab. Use separate containers for Compose deployments.</li>
+                <li><strong>Port alignment is critical</strong> — After deployment, extract port_mapping and inject into config generator</li>
+                <li><strong>API endpoint is /config</strong> — Not /api/v1/config. Controller at localhost:8443</li>
+                <li><strong>Self-signed certificates require -k flag</strong> — curl -k for verification</li>
+                <li><strong>Use continuous duration, never fixed_seconds</strong> — fixed_seconds crashes keng-controller</li>
+                <li><strong>Snappi uses cfg.deserialize(), not cfg.loads()</strong> — loads() doesn't exist</li>
+                <li><strong>Flow rate choice must be percentage, not line</strong> — OTG schema allows "line", Snappi rejects it</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Documentation Structure</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>File/Path</th>
+                        <th>Purpose</th>
+                        <th>For Whom</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>README.md</code></td>
+                        <td>Project overview, skill descriptions, examples</td>
+                        <td>Users exploring the project</td>
+                    </tr>
+                    <tr>
+                        <td><code>AGENT_ORCHESTRATION_PLAN.md</code></td>
+                        <td>Detailed orchestration patterns, use cases</td>
+                        <td>System designers, architects</td>
+                    </tr>
+                    <tr>
+                        <td><code>fixes.md</code></td>
+                        <td>Mistakes, root causes, solutions, prevention</td>
+                        <td>Agents, developers, future reference</td>
+                    </tr>
+                    <tr>
+                        <td><code>.claude/skills/INDEX.md</code></td>
+                        <td>Skill technical overview</td>
+                        <td>Developers modifying skills</td>
+                    </tr>
+                    <tr>
+                        <td><code>.claude/skills/*/SKILL.md</code></td>
+                        <td>Skill technical reference, known limitations, patterns</td>
+                        <td>Agents executing skills, developers</td>
+                    </tr>
+                    <tr>
+                        <td><code>.claude/skills/*/README.md</code></td>
+                        <td>Skill user guide, troubleshooting</td>
+                        <td>End users</td>
+                    </tr>
+                    <tr>
+                        <td><code>.claude/agents/*/</code></td>
+                        <td>Agent specifications, responsibilities, workflows</td>
+                        <td>Claude orchestrator, developers</td>
+                    </tr>
+                    <tr>
+                        <td><code>.claude/commands/</code></td>
+                        <td>Claude Commands YAML, 16 commands (3 tiers)</td>
+                        <td>Users invoking /commands</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Architecture Highlights</h2>
+
+            <h3>1. Skill-Based Architecture</h3>
+            <p>The project is organized around <strong>skills</strong> (`.claude/skills/`), not traditional code modules. Each skill is:</p>
+            <ul class="feature-list">
+                <li><strong>Self-contained:</strong> Owns its own logic, references, test cases</li>
+                <li><strong>Composable:</strong> Can be invoked independently or chained with others</li>
+                <li><strong>Documented:</strong> SKILL.md (technical), README.md (user guide), evals.json (test cases)</li>
+            </ul>
+
+            <h3>2. Subagent Orchestration Pattern</h3>
+            <p>Claude Code acts as an <strong>orchestrator</strong> that:</p>
+            <ul class="feature-list">
+                <li>Parses user intent</li>
+                <li>Dispatches to specialized agents</li>
+                <li>Manages data handoff between agents</li>
+                <li>Handles parallelism when appropriate</li>
+            </ul>
+
+            <h3>3. Command-Driven Interface (16 Commands)</h3>
+            <p>Three tiers of Claude Commands:</p>
+            <ul class="feature-list">
+                <li><strong>Section C (7):</strong> Help & Discovery — Onboarding</li>
+                <li><strong>Section A (5):</strong> Skill Shortcuts — Quick access with defaults</li>
+                <li><strong>Section B (4):</strong> Workflows — End-to-end orchestration</li>
+            </ul>
+
+            <h3>4. Institutional Learning via fixes.md</h3>
+            <p>Every mistake becomes institutional knowledge:</p>
+            <ul class="feature-list">
+                <li>Documented in fixes.md (root cause, solution, prevention)</li>
+                <li>Promoted to skill SKILL.md (known limitations, patterns)</li>
+                <li>Agents read fixes.md at startup and learn automatically</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        <h3>KENG OTG Plugin v2.0</h3>
+        <p>5 Production Skills • 4 Intelligent Agents • 16 Claude Commands</p>
+        <p style="margin-top: 1rem; opacity: 0.8;">
+            Built for network test automation • Vendor-neutral • Open Traffic Generator (OTG) compatible
+        </p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">
+            Last updated: March 23, 2026 |
+            <a href="https://github.com/open-traffic-generator/ixia-c" style="color: #4a9eed; text-decoration: none;">Ixia-c GitHub</a> |
+            <a href="https://github.com/open-traffic-generator/snappi" style="color: #4a9eed; text-decoration: none;">Snappi SDK</a>
+        </p>
+    </footer>
+</body>
+</html>

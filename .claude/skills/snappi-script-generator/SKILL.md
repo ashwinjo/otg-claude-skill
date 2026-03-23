@@ -679,6 +679,49 @@ If the deployment script uses `docker cp` to inject `config.yaml` into the contr
 sudo docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml
 ```
 
+### Snappi Config API: use .deserialize(), not .loads()
+The Python stdlib `json.loads()` is NOT available on snappi.Config objects. Use the correct Snappi API:
+```python
+# CORRECT
+cfg = snappi.Config()
+cfg.deserialize(otg_json_string)      # load JSON string into config
+api.set_config(cfg)
+
+json_output = cfg.serialize()          # export config as JSON string
+
+# WRONG — AttributeError: 'Config' object has no attribute 'loads'
+cfg.loads(json_string)  # DO NOT USE
+```
+
+### ixia-c-one: metric fields limitations (vs full CP+DP)
+ixia-c-one (all-in-one bundle, keng-controller v1.48.0-5) does NOT support:
+- Flow-level latency metrics (store_forward, cut_through, any mode) → **removed from config**
+- Flow-level loss metrics → **removed from config**
+
+These are supported in full ixia-c CP+DP deployment but NOT in the ixia-c-one container.
+
+**Workaround:** Remove unsupported metric fields before pushing to ixia-c-one:
+```python
+# CORRECT for ixia-c-one
+flow.metrics.enable = True            # basic frame counters only
+# Do NOT set: flow.metrics.latency, flow.metrics.loss
+
+# Collect metrics from port-level stats instead
+port_metrics = api.get_metrics(req.PORT)
+for pm in port_metrics.port_metrics:
+    frames_tx = pm.frames_tx
+    frames_rx = pm.frames_rx
+    loss = frames_tx - frames_rx
+```
+
+**Prevention:** If generating for ixia-c-one target, filter the OTG config before `api.set_config()`:
+```python
+for flow in cfg.flows:
+    if hasattr(flow, 'metrics'):
+        flow.metrics.latency = None    # remove unsupported field
+        # or better: only set .enable, omit others
+```
+
 ## Error Handling
 
 The generated script includes:

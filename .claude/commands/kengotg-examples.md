@@ -291,18 +291,124 @@ Both agents run independently.
 
 ---
 
+## Example 9: Containerlab-Based BGP Testing
+
+**Scenario:** Test BGP convergence with a containerized router DUT using Containerlab topology.
+
+### Step 1: Deploy Infrastructure with Containerlab
+```
+@ixia-c-deployment-agent Deploy Ixia-c using Containerlab with ixia-c-one for BGP testing with FRR DUT.
+Use 2 ports (eth1 ↔ eth2), ixia-c-one all-in-one container, link both ports to FRR DUT.
+```
+
+**Agent decides:**
+- Containerlab (network topology with external DUT support)
+- ixia-c-one bundle (simpler, PE included)
+- 2 traffic engines → eth1, eth2 (loopback within ixia-c-one)
+- FRR DUT node for routing protocol testing
+- Auto-discovers port locations from containerlab links
+
+**Outputs:**
+- `topo.clab.yml` (3 nodes: ixia-c-one, FRR DUT, optional test runner)
+- `setup-clab-bgp.sh` (containerlab deploy automation)
+- Controller at: auto-discovered container IP on 8443
+- Port mapping: `{"P1": "eth1", "P2": "eth2"}`
+
+### Step 2: Generate OTG BGP Configuration
+```
+@otg-config-generator-agent Create BGP test with Containerlab infrastructure:
+- 2 ports (P1:eth1, P2:eth2) on ixia-c-one
+- BGP AS 65001 on P1, AS 65002 on P2
+- Bidirectional traffic 500 pps
+- 60 second duration
+- Measure BGP state convergence and packet loss
+- Assert: BGP neighbor states ESTABLISHED, zero packet loss
+```
+
+**Agent:**
+- Injects containerlab port mapping (eth1, eth2)
+- Validates port locations against topology
+- Generates BGP config aligned with DUT routing
+- Creates assertions for convergence metrics
+
+**Output:** `bgp_containerlab.json`
+
+### Step 3: Generate Test Script
+```
+@snappi-script-generator-agent Generate test script for containerlab BGP test.
+Controller will be discovered from running topology (e.g., 172.17.0.2:8443).
+Use snappi SDK to manage BGP state and traffic flows.
+```
+
+**Agent:**
+- Embeds containerlab node discovery
+- Implements BGP polling with state verification
+- Adds traffic start/stop with timing
+- Generates JSON report with BGP convergence metrics
+
+**Output:** `test_bgp_containerlab.py`
+
+### Step 4: Deploy & Execute
+```bash
+# Deploy containerlab topology (3-5 nodes: controller, traffic engine, DUT, etc.)
+sudo containerlab deploy -t topo.clab.yml
+
+# Discover controller IP and run test
+IXIA_IP=$(sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' clab-keng-bgp-ixia-c)
+sed -i "s/CONTROLLER_IP/$IXIA_IP/" test_bgp_containerlab.py
+
+# Run test script (uses snappi to control ixia-c-one)
+python test_bgp_containerlab.py
+
+# Cleanup
+sudo containerlab destroy -t topo.clab.yml
+```
+
+**Results:**
+- JSON report with BGP convergence metrics
+- Traffic loss statistics
+- DUT routing table validation
+- Pass/fail assertions
+
+---
+
+### Alternative: Containerlab CP+DP (Per-Component Engines)
+
+For advanced scenarios (high scale, custom TE/PE versions), use separate controller/TE/PE containers:
+
+```
+@ixia-c-deployment-agent Deploy Ixia-c using Containerlab CP+DP pattern:
+- Controller on host network
+- TE1 (port 5555) + PE1 (shared namespace)
+- TE2 (port 5556) + PE2 (shared namespace)
+- FRR DUT with veth links
+- 2 Mbps bidirectional traffic
+```
+
+**Agent:**
+- Generates `topo.clab.yml` with per-component containers
+- Controller location_map: points to container IPs (e.g., `te1:172.17.0.3:5555`)
+- Manages veth pair injection for TE-DUT connectivity
+
+This pattern is identical to Docker Compose CP+DP but managed by Containerlab's topology system.
+
+---
+
 ## Quick Reference Table
 
-| Scenario | Agents | Sequence | Approx. Time |
-|----------|--------|----------|--------------|
-| Greenfield (deploy+config+script) | 🔵→🟢→🟣 | Sequential | 2-3 min |
-| License check | 🟠 | - | 1 min |
-| IxNetwork migration | 🔵→🟢→🟣 | Sequential (or skip deploy) | 3-5 min |
-| Existing infra (config+script) | 🟢→🟣 | Sequential | 1-2 min |
-| Full pipeline (parallel licensing) | 🔵\|🟠→🟢→🟣 | Parallel + Seq | 2-3 min |
-| Multi-protocol complex | 🟢→🟣 | Sequential | 2-3 min |
-| Performance baseline | 🟢→🟣 | Sequential | 1-2 min |
-| Minimal connectivity | 🟢→🟣 | Sequential | 1 min |
+| Scenario | Agents | Sequence | Approx. Time | Infrastructure |
+|----------|--------|----------|--------------|-----------------|
+| Greenfield (deploy+config+script) | 🔵→🟢→🟣 | Sequential | 2-3 min | Docker Compose |
+| License check | 🟠 | - | 1 min | N/A |
+| IxNetwork migration | 🔵→🟢→🟣 | Sequential (or skip deploy) | 3-5 min | Docker or Clab |
+| Existing infra (config+script) | 🟢→🟣 | Sequential | 1-2 min | Any |
+| Full pipeline (parallel licensing) | 🔵\|🟠→🟢→🟣 | Parallel + Seq | 2-3 min | Docker Compose |
+| Multi-protocol complex | 🟢→🟣 | Sequential | 2-3 min | Any |
+| Performance baseline | 🟢→🟣 | Sequential | 1-2 min | Any |
+| Minimal connectivity | 🟢→🟣 | Sequential | 1 min | Any |
+| **Containerlab B2B (ixia-c-one)** | **🔵→🟢→🟣** | **Sequential** | **2-3 min** | **Containerlab** |
+| **Containerlab with DUT** | **🔵→🟢→🟣** | **Sequential** | **3-5 min** | **Containerlab** |
+| **Containerlab CP+DP** | **🔵→🟢→🟣** | **Sequential** | **3-5 min** | **Containerlab** |
 
 ---
 
@@ -311,8 +417,17 @@ Both agents run independently.
 ```
 Do you have Ixia-c running?
 ├─ No  → Need deploy
-│  ├─ With licensing check? → Example 6 (greenfield + license)
-│  └─ Without? → Example 1 (greenfield basic)
+│  ├─ Prefer Containerlab?
+│  │  ├─ Simple B2B loopback? → Example 9A (ixia-c-one B2B)
+│  │  ├─ Need external DUT (router)? → Example 9B (ixia-c-one + FRR)
+│  │  ├─ CP+DP (advanced)? → Example 9C (per-component engines)
+│  │  └─ With licensing check? → Run licensing + Example 9 in parallel
+│  │
+│  ├─ Prefer Docker Compose?
+│  │  ├─ With licensing check? → Example 6 (greenfield + license)
+│  │  └─ Without? → Example 1 (greenfield basic)
+│  │
+│  └─ Unsure? → Example 9 (Containerlab is more flexible for DUT)
 │
 ├─ Yes → Skip deploy
 │  ├─ Simple test? → Example 8 (connectivity)
