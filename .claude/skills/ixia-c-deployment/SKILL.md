@@ -9,6 +9,8 @@ description: |
 
 # Ixia-c Deployment — Entry Point
 
+> ⚠️ Read `fixes.md` in this directory before generating any output.
+
 ## Step 0: Check if deployment already exists
 
 **Always check for existing containers before deploying.**

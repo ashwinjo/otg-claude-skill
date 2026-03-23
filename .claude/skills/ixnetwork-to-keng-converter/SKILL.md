@@ -16,6 +16,8 @@ description: |
 compatibility: []
 ---
 
+> ⚠️ Read `fixes.md` in this directory before generating any output.
+
 ## Overview
 
 This skill converts IxNetwork test configurations to vendor-neutral OTG/KENG format. It handles:

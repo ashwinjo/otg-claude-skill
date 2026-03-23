@@ -15,6 +15,8 @@ description: |
 
 # OTG Licensing Reference Tool
 
+> ⚠️ Read `fixes.md` in this directory before generating any output.
+
 ## Core Principle
 
 **Do NOT make up information.** If you don't know the answer, say so clearly and suggest the user contact a Solutions Engineer (SE).
