@@ -11,6 +11,11 @@ description: |
 
 > ⚠️ Read `fixes.md` in this directory before generating any output.
 
+> 📁 Before generating any deployment config, read `artifacts/deployment/INDEX.md`.
+> List existing verified configs to the user and ask: **reuse** or **regenerate**?
+> When saving a new config: derive a descriptive filename (e.g. `bgp-2port-docker-compose.yml`),
+> append a row to `artifacts/deployment/INDEX.md`. On name collision: ask overwrite or keep both.
+
 ## Step 0: Check if deployment already exists
 
 **Always check for existing containers before deploying.**
