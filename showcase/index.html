@@ -3,612 +3,1094 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Skills Showcase — KENG/OTG Ecosystem</title>
+  <title>keng-otg-skills — Claude Code Plugin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0e14;
-      --bg-elevated: #12171f;
-      --bg-card: #161c26;
-      --text: #e6edf3;
-      --text-muted: #8b949e;
-      --accent: #58a6ff;
-      --accent-dim: #388bfd;
-      --keysight-blue: #0066b3;
-      --keysight-light: #3399ff;
-      --success: #3fb950;
-      --border: #30363d;
-      --radius: 12px;
-      --radius-lg: 20px;
-      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --bg:           #0a0e14;
+      --bg-elevated:  #12171f;
+      --bg-card:      #161c26;
+      --bg-terminal:  #0d1117;
+      --text:         #e6edf3;
+      --text-muted:   #8b949e;
+      --text-dim:     #6e7681;
+      --accent:       #58a6ff;
+      --accent-glow:  rgba(88,166,255,0.10);
+      --success:      #3fb950;
+      --purple:       #bc8cff;
+      --orange:       #e3b341;
+      --red:          #ff7b72;
+      --border:       #30363d;
+      --border-muted: #21262d;
+      --radius:       10px;
+      --radius-lg:    16px;
+      --tier-c: #e3b341;
+      --tier-a: #58a6ff;
+      --tier-b: #3fb950;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
 
     body {
       font-family: 'DM Sans', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
+      line-height: 1.7;
       overflow-x: hidden;
     }
 
-    /* Subtle grid background */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
-      background-image: 
-        linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(88,166,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(88,166,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none; z-index: 0;
     }
 
+    /* ── Layout ── */
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 0 1.5rem;
-      position: relative;
-      z-index: 1;
+      position: relative; z-index: 1;
     }
 
-    /* Hero */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 4rem 0;
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,14,20,0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-muted);
+      padding: 0.7rem 1.5rem;
     }
-
-    .hero-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 1rem;
-      opacity: 0;
-      animation: fadeUp 0.6s ease forwards;
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; gap: 0.2rem;
+      flex-wrap: wrap;
     }
-
-    .hero h1 {
+    .nav-brand {
       font-family: 'Syne', sans-serif;
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 700;
-      line-height: 1.1;
-      margin-bottom: 0.75rem;
-      opacity: 0;
-      animation: fadeUp 0.6s ease 0.1s forwards;
+      font-weight: 700; font-size: 0.95rem;
+      color: var(--text); margin-right: auto;
+      white-space: nowrap; text-decoration: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    nav a {
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      padding: 0.28rem 0.6rem; border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--text);
+      background: rgba(88,166,255,0.09);
     }
 
-    .hero .tagline {
-      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      max-width: 540px;
-      opacity: 0;
-      animation: fadeUp 0.6s ease 0.2s forwards;
-    }
-
-    .hero .value-statement {
-      font-size: 1rem;
-      color: var(--text-muted);
-      max-width: 480px;
-      opacity: 0;
-      animation: fadeUp 0.6s ease 0.3s forwards;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Section headings */
-    section {
-      padding: 5rem 0;
-    }
-
+    /* ── Sections ── */
+    section { padding: 5rem 0; }
     .section-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 0.5rem;
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.4rem;
+      display: block;
     }
-
     .section-title {
       font-family: 'Syne', sans-serif;
-      font-size: clamp(1.75rem, 4vw, 2.25rem);
-      font-weight: 700;
-      margin-bottom: 1rem;
+      font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+      font-weight: 700; margin-bottom: 0.75rem; line-height: 1.15;
     }
-
     .section-desc {
-      color: var(--text-muted);
-      max-width: 600px;
-      margin-bottom: 2rem;
+      color: var(--text-muted); max-width: 640px; margin-bottom: 2.25rem;
     }
+    .divider { border: none; border-top: 1px solid var(--border-muted); margin: 0; }
 
-    /* What Are Claude Skills */
-    .skills-explainer {
-      background: var(--bg-elevated);
-      border-radius: var(--radius-lg);
-      padding: 2rem 2.5rem;
-      border: 1px solid var(--border);
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 6rem 0 4rem;
     }
-
-    .skills-explainer p {
-      margin-bottom: 1rem;
-      font-size: 1.05rem;
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 0.5s ease 0.05s forwards;
     }
-
-    .skills-explainer p:last-child {
-      margin-bottom: 0;
+    .hero-eyebrow-tag {
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-glow);
+      padding: 0.28rem 0.7rem; border-radius: 20px;
+      border: 1px solid rgba(88,166,255,0.2);
     }
-
-    /* Skill cards */
-    .skill-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .skill-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-
-    .skill-card:hover {
-      border-color: var(--accent-dim);
-      transform: translateY(-2px);
-    }
-
-    .skill-card h3 {
+    .hero-sep { color: var(--border); }
+    .hero-eyebrow-sub { font-size: 0.8rem; color: var(--text-dim); }
+    .hero h1 {
       font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--accent);
+      font-size: clamp(2.4rem, 6vw, 3.8rem);
+      font-weight: 800; line-height: 1.05; margin-bottom: 1rem;
+      opacity: 0; animation: fadeUp 0.5s ease 0.15s forwards;
     }
-
-    .skill-card .value {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 1rem;
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-
-    .skill-card ul {
-      list-style: none;
-      font-size: 0.9rem;
-      color: var(--text);
+    .hero .tagline {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--text-muted); max-width: 580px; margin-bottom: 2.5rem;
+      opacity: 0; animation: fadeUp 0.5s ease 0.25s forwards;
     }
-
-    .skill-card li {
-      padding-left: 1.25rem;
-      position: relative;
-      margin-bottom: 0.4rem;
+    .hero-ctas {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.5s ease 0.35s forwards;
     }
-
-    .skill-card li::before {
-      content: '→';
-      position: absolute;
-      left: 0;
-      color: var(--accent-dim);
-      font-weight: 600;
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.88rem;
+      padding: 0.65rem 1.35rem; border-radius: 8px;
+      text-decoration: none; transition: all 0.15s; cursor: pointer;
     }
-
-    .skill-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--success);
-      background: rgba(63, 185, 80, 0.15);
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      margin-top: 1rem;
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-ghost {
+      color: var(--text-muted); border: 1px solid var(--border); background: transparent;
     }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); background: var(--accent-glow); }
 
-    /* Workflow */
-    .workflow-wrap {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-      overflow-x: auto;
-    }
-
-    .workflow-wrap .mermaid {
-      display: flex;
-      justify-content: center;
-    }
-
-    .workflow-narrative {
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      color: var(--text-muted);
-      text-align: center;
-    }
-
-    .workflow-narrative strong {
-      color: var(--accent);
-    }
-
-    /* Business value */
-    .value-grid {
+    /* ── Stats bar ── */
+    .stats-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      overflow: hidden;
     }
-
-    .value-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-    }
-
-    .value-item h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .value-item p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    /* Stats */
-    .stats-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      justify-content: center;
-      padding: 2rem;
-      background: var(--bg-elevated);
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-    }
-
-    .stat {
-      text-align: center;
-    }
-
+    .stat { background: var(--bg-elevated); padding: 1.4rem 1rem; text-align: center; }
     .stat-value {
       font-family: 'Syne', sans-serif;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--accent);
+      font-size: 1.65rem; font-weight: 700;
+      color: var(--accent); line-height: 1; margin-bottom: 0.3rem;
     }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); }
 
-    .stat-label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+    /* ── Card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
     }
-
-    /* Contact */
-    .contact-section {
-      text-align: center;
-      padding-bottom: 4rem;
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s; position: relative;
     }
-
-    .contact-section .section-desc {
-      margin-left: auto;
-      margin-right: auto;
+    .card:hover { border-color: rgba(88,166,255,0.3); transform: translateY(-2px); }
+    .card-accent-top {
+      position: absolute; top: 0; left: 1.5rem; right: 1.5rem;
+      height: 2px; border-radius: 0 0 2px 2px;
     }
-
-    .cta {
-      display: inline-block;
+    .card h3 {
       font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 1rem;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border: 2px solid var(--accent);
-      border-radius: 8px;
-      transition: background 0.2s, color 0.2s;
+      font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem;
+    }
+    .card .card-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .card ul { list-style: none; font-size: 0.83rem; }
+    .card li {
+      padding: 0.18rem 0 0.18rem 1.25rem;
+      position: relative; color: var(--text-muted);
+    }
+    .card li::before {
+      content: '›'; position: absolute; left: 0;
+      color: var(--accent); font-weight: 700;
     }
 
-    .cta:hover {
-      background: var(--accent);
-      color: var(--bg);
+    /* ── Badges ── */
+    .badge {
+      display: inline-block; font-size: 0.67rem; font-weight: 600;
+      padding: 0.18rem 0.55rem; border-radius: 20px; margin-top: 1rem;
+    }
+    .badge-green  { background: rgba(63,185,80,0.1);   color: var(--success); border: 1px solid rgba(63,185,80,0.2); }
+    .badge-blue   { background: var(--accent-glow);     color: var(--accent);  border: 1px solid rgba(88,166,255,0.2); }
+    .badge-purple { background: rgba(188,140,255,0.1); color: var(--purple);  border: 1px solid rgba(188,140,255,0.2); }
+    .badge-amber  { background: rgba(227,179,65,0.1);  color: var(--orange);  border: 1px solid rgba(227,179,65,0.2); }
+
+    /* ── Agent accent colors ── */
+    .agent-blue   .card-accent-top { background: var(--accent);  }
+    .agent-green  .card-accent-top { background: var(--success); }
+    .agent-purple .card-accent-top { background: var(--purple);  }
+    .agent-orange .card-accent-top { background: var(--orange);  }
+    .agent-blue   h3 { color: var(--accent);  }
+    .agent-green  h3 { color: var(--success); }
+    .agent-purple h3 { color: var(--purple);  }
+    .agent-orange h3 { color: var(--orange);  }
+
+    /* ── Terminal blocks ── */
+    .terminal {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .terminal-header {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1rem; border-bottom: 1px solid var(--border-muted);
+      background: rgba(255,255,255,0.015);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red    { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green  { background: #27c93f; }
+    .term-label { font-size: 0.7rem; color: var(--text-dim); margin-left: 0.4rem; }
+    .terminal-body {
+      padding: 1rem 1.25rem;
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 0.8rem; line-height: 1.9; color: #b5c4d1;
+      overflow-x: auto;
+    }
+    .terminal-body .prompt { color: var(--success); }
+    .terminal-body .cmd    { color: var(--text); font-weight: 500; }
+    .terminal-body .comment{ color: var(--text-dim); }
+    .terminal-body .out    { color: var(--text-muted); }
+
+    code {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 0.8rem; background: var(--bg-terminal);
+      color: var(--accent); padding: 0.14rem 0.42rem;
+      border-radius: 4px; border: 1px solid var(--border-muted);
     }
 
-    /* Mermaid overrides for dark theme */
-    .mermaid svg {
-      max-width: 100%;
+    /* ── Command tiers ── */
+    .tier-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 2.25rem 0 1.1rem;
+    }
+    .tier-header:first-child { margin-top: 0; }
+    .tier-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .tier-title {
+      font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
+    }
+    .tier-meta { font-size: 0.8rem; color: var(--text-dim); }
+
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 0.75rem;
+    }
+    .cmd-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.9rem 1rem;
+      border-left-width: 3px; transition: transform 0.15s;
+    }
+    .cmd-card:hover { transform: translateY(-1px); }
+    .cmd-card code {
+      background: none; border: none; padding: 0;
+      display: block; margin-bottom: 0.3rem; font-size: 0.78rem; font-weight: 500;
+    }
+    .cmd-card p { font-size: 0.8rem; color: var(--text-dim); }
+    .tier-c .cmd-card { border-left-color: var(--tier-c); }
+    .tier-c .cmd-card code { color: var(--tier-c); }
+    .tier-a .cmd-card { border-left-color: var(--tier-a); }
+    .tier-a .cmd-card code { color: var(--tier-a); }
+    .tier-b .cmd-card { border-left-color: var(--tier-b); }
+    .tier-b .cmd-card code { color: var(--tier-b); }
+
+    /* ── Tables ── */
+    .table-wrap {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table th {
+      text-align: left; padding: 0.6rem 1rem;
+      background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+      color: var(--text-muted); font-weight: 500;
+      font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .data-table td {
+      padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-muted);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(88,166,255,0.025); }
+
+    /* ── Workflow patterns ── */
+    .pattern-block {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .pattern-block h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem; font-weight: 700; margin-bottom: 0.55rem;
+    }
+    .pattern-flow {
+      display: flex; align-items: center; gap: 0.45rem;
+      flex-wrap: wrap; margin-bottom: 0.6rem;
+    }
+    .flow-step {
+      font-family: 'DM Mono', monospace; font-size: 0.75rem;
+      background: var(--bg-elevated); color: var(--accent);
+      padding: 0.18rem 0.55rem; border-radius: 4px; border: 1px solid var(--border);
+    }
+    .flow-arrow { color: var(--text-dim); font-size: 0.78rem; }
+    .flow-parallel {
+      color: var(--purple); font-size: 0.72rem;
+      background: rgba(188,140,255,0.1);
+      padding: 0.14rem 0.42rem; border-radius: 4px;
+      border: 1px solid rgba(188,140,255,0.2);
+    }
+    .pattern-block p { font-size: 0.84rem; color: var(--text-muted); }
+
+    /* ── Callouts ── */
+    .callout {
+      border-radius: var(--radius); padding: 1.1rem 1.4rem;
+      border-left: 3px solid; margin: 1.5rem 0; font-size: 0.88rem;
+    }
+    .callout-info    { background: var(--accent-glow);            border-left-color: var(--accent); }
+    .callout-warn    { background: rgba(227,179,65,0.07);          border-left-color: var(--orange); }
+    .callout-success { background: rgba(63,185,80,0.07);           border-left-color: var(--success); }
+    .callout-purple  { background: rgba(188,140,255,0.07);         border-left-color: var(--purple); }
+    .callout strong  { color: var(--text); }
+
+    /* ── Artifacts section ── */
+    .artifact-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
+    }
+    .artifact-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      border-top: 2px solid var(--purple);
+    }
+    .artifact-card h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem; font-weight: 700; color: var(--purple); margin-bottom: 0.65rem;
+    }
+    .artifact-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .path-tag {
+      font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--text-dim);
+      background: var(--bg-elevated); padding: 0.35rem 0.7rem; border-radius: 6px;
+      border: 1px solid var(--border-muted); display: block; margin-bottom: 0.75rem;
+    }
+    .artifact-items { display: flex; flex-direction: column; gap: 0.4rem; }
+    .artifact-item { font-size: 0.82rem; color: var(--text-muted); }
+    .artifact-item::before { content: '→ '; color: var(--accent); }
+
+    /* ── Quick start paths ── */
+    .path-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem;
+    }
+    .path-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+    }
+    .path-card h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .path-steps { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .path-steps li {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent-glow); color: var(--accent);
+      font-size: 0.63rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 0.1rem;
+      border: 1px solid rgba(88,166,255,0.2);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 3rem 0 4rem; text-align: center;
+    }
+    .footer-title {
+      font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem;
+    }
+    .footer-pills {
+      font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;
+    }
+    .footer-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.35rem; }
+    .footer-links {
+      display: flex; gap: 1.5rem; justify-content: center; margin-top: 1rem;
+    }
+    .footer-links a {
+      font-size: 0.8rem; color: var(--text-muted); text-decoration: none; transition: color 0.15s;
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .card-grid      { grid-template-columns: 1fr; }
+      .cmd-grid       { grid-template-columns: 1fr 1fr; }
+      .stats-bar      { grid-template-columns: repeat(3, 1fr); }
+      .artifact-grid  { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .cmd-grid  { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .path-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <div class="container">
-      <section class="hero">
-        <span class="hero-badge">Claude Skill Developer</span>
-        <h1>Ashwin Joshi</h1>
-        <p class="tagline">Claude Skill Developer — KENG/OTG Ecosystem</p>
-        <p class="value-statement">Four production-ready skills that extend Claude with domain expertise for Keysight KENG and Open Traffic Generator, enabling configuration, deployment, script automation, and licensing guidance.</p>
-      </section>
 
-      <section id="what-are-skills">
-        <span class="section-label">Overview</span>
-        <h2 class="section-title">What Are Claude Skills?</h2>
-        <div class="skills-explainer">
-          <p>Claude Skills are reusable knowledge modules that extend Claude with domain-specific expertise. When a user's task matches a skill's trigger conditions, Claude automatically invokes it—no manual selection required.</p>
-          <p>These skills are <strong>production-ready</strong>: they include feasibility checks, validation, error handling, and integration with upstream tooling. They turn Claude into a specialized assistant for network test automation.</p>
-        </div>
-      </section>
-
-      <section id="skills">
-        <span class="section-label">Skills & Agents</span>
-        <h2 class="section-title">Complete OTG Automation Suite</h2>
-        <p class="section-desc">5 production-ready skills with 4 intelligent subagents for orchestrated test automation.</p>
-        <div class="skill-grid">
-          <article class="skill-card">
-            <h3>🔄 ixnetwork-to-keng-converter</h3>
-            <p class="value">IxNetwork config → OTG format migration</p>
-            <ul>
-              <li>Feasibility analysis (supported/unsupported)</li>
-              <li>RestPy code or JSON auto-detection</li>
-              <li>Detailed conversion reports</li>
-              <li>BGP, Ethernet, IPv4, VLAN support</li>
-            </ul>
-            <span class="skill-badge">Production-Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🟢 otg-config-generator</h3>
-            <p class="value">Natural language → OTG JSON</p>
-            <ul>
-              <li>"Create BGP test with 2 ports" → valid config</li>
-              <li>Schema validation & constraint checking</li>
-              <li>BGP, ISIS, LACP, LLDP, VLANs, LAGs</li>
-              <li>Paired with subagent for orchestration</li>
-            </ul>
-            <span class="skill-badge">Production-Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🟣 snappi-script-generator</h3>
-            <p class="value">OTG config → executable Python scripts</p>
-            <ul>
-              <li>Standalone Snappi scripts (no external deps)</li>
-              <li>Protocol setup, traffic control, assertions</li>
-              <li>BGP convergence polling, metrics collection</li>
-              <li>Error handling, retry, graceful cleanup</li>
-            </ul>
-            <span class="skill-badge">Production-Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🚢 ixia-c-deployment</h3>
-            <p class="value">Infrastructure provisioning & validation</p>
-            <ul>
-              <li>Docker Compose (B2B, CP+DP, LAG)</li>
-              <li>Containerlab (ixia-c-one, per-component)</li>
-              <li>Health checks & port location mapping</li>
-              <li>Paired with subagent for orchestration</li>
-            </ul>
-            <span class="skill-badge">Production-Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>📋 keng-licensing</h3>
-            <p class="value">OTG licensing guidance & cost estimates</p>
-            <ul>
-              <li>Developer/Team/System tier recommendations</li>
-              <li>KENG-DPLU/CPLU cost calculations</li>
-              <li>License mechanics, SE disclaimers</li>
-              <li>Parallel execution with other agents</li>
-            </ul>
-            <span class="skill-badge">Production-Ready</span>
-          </article>
-        </div>
-      </section>
-
-      <section id="agents">
-        <span class="section-label">Intelligent Orchestration</span>
-        <h2 class="section-title">Subagent Architecture</h2>
-        <p class="section-desc">4 specialized agents that work together to orchestrate complex test workflows.</p>
-        <div class="skill-grid">
-          <article class="skill-card">
-            <h3>🔵 ixia-c-deployment-agent</h3>
-            <p class="value">Infrastructure deployer (Docker/Containerlab)</p>
-            <ul>
-              <li>Determines topology based on protocol needs</li>
-              <li>Generates deployment manifests</li>
-              <li>Port location mapping for downstream agents</li>
-              <li>5 eval questions for quality validation</li>
-            </ul>
-            <span class="skill-badge">Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🟢 otg-config-generator-agent</h3>
-            <p class="value">Intent translator (natural language → config)</p>
-            <ul>
-              <li>Parses test scenarios, maps to OTG schema</li>
-              <li>Injects port locations from deployment agent</li>
-              <li>Validates schema compliance & alignment</li>
-              <li>5 eval questions for quality validation</li>
-            </ul>
-            <span class="skill-badge">Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🟣 snappi-script-generator-agent</h3>
-            <p class="value">Executor (config → script)</p>
-            <ul>
-              <li>Generates standalone Python Snappi scripts</li>
-              <li>Embeds infrastructure details & protocol setup</li>
-              <li>Implements assertions & metrics collection</li>
-              <li>5 eval questions for quality validation</li>
-            </ul>
-            <span class="skill-badge">Ready</span>
-          </article>
-          <article class="skill-card">
-            <h3>🟠 keng-licensing-agent</h3>
-            <p class="value">Advisor (licensing recommendations)</p>
-            <ul>
-              <li>Cost estimation (DPLU/CPLU calculations)</li>
-              <li>Tier recommendations & comparisons</li>
-              <li>Optimization suggestions & SE disclaimers</li>
-              <li>5 eval questions for quality validation</li>
-            </ul>
-            <span class="skill-badge">Ready</span>
-          </article>
-        </div>
-      </section>
-
-      <section id="workflow">
-        <span class="section-label">End-to-End Flow</span>
-        <h2 class="section-title">Agent Orchestration</h2>
-        <p class="section-desc">Claude Code orchestrates subagents to automate network test workflows.</p>
-        <div class="workflow-wrap">
-          <div class="mermaid">
-flowchart TD
-    User["👤 User Intent<br/>Create BGP test"]
-
-    Orch["🎯 Claude Orchestrator<br/>Parse & dispatch"]
-
-    Deploy["🔵 ixia-c-deployment-agent<br/>Docker Compose + veth"]
-    Config["🟢 otg-config-generator-agent<br/>Natural language → OTG"]
-    Script["🟣 snappi-script-generator-agent<br/>OTG → Python script"]
-    License["🟠 keng-licensing-agent<br/>Cost estimation"]
-
-    Output1["📝 docker-compose.yml<br/>+ port mapping"]
-    Output2["📋 otg_config.json<br/>aligned"]
-    Output3["🐍 test_bgp.py<br/>executable"]
-    Output4["💰 License recommendation<br/>+ cost"]
-
-    User --> Orch
-    Orch --> Deploy
-    Orch --> Config
-    Orch --> Script
-    Orch --> License
-
-    Deploy --> Output1
-    Output1 --> Config
-    Config --> Output2
-    Output2 --> Script
-    Script --> Output3
-    License --> Output4
-          </div>
-          <p class="workflow-narrative"><strong>Intent → Agents → Outputs</strong> — Claude orchestrates 4 specialized agents: deployment infrastructure, config generation, script creation, and licensing advice work together to automate complex test workflows.</p>
-        </div>
-      </section>
-
-      <section id="value">
-        <span class="section-label">Business Value</span>
-        <h2 class="section-title">Why This Matters</h2>
-        <div class="value-grid">
-          <div class="value-item">
-            <h4>Intelligent Orchestration</h4>
-            <p>4 subagents work together—deployment, config, script, licensing—eliminating manual coordination.</p>
-          </div>
-          <div class="value-item">
-            <h4>Minutes to Runnable Tests</h4>
-            <p>From natural language to executable Snappi script in minutes, not hours or days.</p>
-          </div>
-          <div class="value-item">
-            <h4>Production-Ready Output</h4>
-            <p>All generated code includes error handling, retries, assertions, and metrics collection.</p>
-          </div>
-          <div class="value-item">
-            <h4>Vendor-Neutral</h4>
-            <p>Works with any OTG-compliant traffic generator (ixia-c, KENG, etc.)—not locked in.</p>
-          </div>
-          <div class="value-item">
-            <h4>Complete Documentation</h4>
-            <p>20 evaluation questions per agent ensure quality; README + guides for each component.</p>
-          </div>
-          <div class="value-item">
-            <h4>Cost Clarity</h4>
-            <p>Understand licensing requirements before building tests—avoid surprises.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="stats">
-        <span class="section-label">Technical Stats</span>
-        <h2 class="section-title">At a Glance</h2>
-        <div class="stats-row">
-          <div class="stat">
-            <div class="stat-value">5</div>
-            <div class="stat-label">Production Skills</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">4</div>
-            <div class="stat-label">Orchestration Agents</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">20</div>
-            <div class="stat-label">Evaluation Questions</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">BGP · ISIS · LACP · LLDP</div>
-            <div class="stat-label">Protocols Supported</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">Docker · Containerlab · K8s</div>
-            <div class="stat-label">Deployment Options</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">Snappi & OTG v0.11.0+</div>
-            <div class="stat-label">SDK Support</div>
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" class="contact-section">
-        <span class="section-label">Next Steps</span>
-        <h2 class="section-title">Schedule a Demo</h2>
-        <p class="section-desc">See these skills in action with live OTG generation and Snappi script execution.</p>
-        <a href="mailto:your.email@keysight.com" class="cta">Contact</a>
-      </section>
+  <!-- ── Sticky Nav ── -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#hero" class="nav-brand">keng-otg<span>-skills</span></a>
+      <a href="#skills">Skills</a>
+      <a href="#agents">Agents</a>
+      <a href="#commands">Commands</a>
+      <a href="#patterns">Patterns</a>
+      <a href="#artifacts">Artifacts</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="#learning">Learning</a>
+      <a href="#architecture">Architecture</a>
     </div>
-  </main>
+  </nav>
+
+  <div class="container">
+
+    <!-- ── Hero ── -->
+    <section class="hero" id="hero">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-tag">Claude Code Plugin</span>
+        <span class="hero-sep">·</span>
+        <span class="hero-eyebrow-sub">KENG / Open Traffic Generator</span>
+      </div>
+      <h1><span style="font-family:'DM Mono',monospace;font-size:0.72em;font-weight:600;color:var(--accent);letter-spacing:-0.01em;">keng-otg-skills</span></h1>
+      <div class="hero-ctas">
+        <a href="#quickstart" class="btn btn-primary">Quick Start ↓</a>
+        <a href="#skills" class="btn btn-ghost">Explore Skills</a>
+      </div>
+      <p style="margin-top:1.5rem;font-size:0.78rem;color:var(--text-dim);">
+        Built by <span style="color:var(--text-muted);">Ashwin Joshi</span> · Keysight Technologies
+      </p>
+    </section>
+
+    <!-- ── Stats ── -->
+    <section id="stats" style="padding-top: 0; padding-bottom: 4rem;">
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-value">5</div><div class="stat-label">Production Skills</div></div>
+        <div class="stat"><div class="stat-value">4</div><div class="stat-label">Intelligent Agents</div></div>
+        <div class="stat"><div class="stat-value">16</div><div class="stat-label">Claude Commands</div></div>
+        <div class="stat"><div class="stat-value">20</div><div class="stat-label">Eval Questions</div></div>
+        <div class="stat"><div class="stat-value">BGP · ISIS</div><div class="stat-label">Protocols</div></div>
+        <div class="stat"><div class="stat-value">Docker · Clab</div><div class="stat-label">Deployment</div></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Skills ── -->
+    <section id="skills">
+      <span class="section-label">Production Skills</span>
+      <h2 class="section-title">5 Skill Modules</h2>
+      <p class="section-desc">Each skill is self-contained with its own SKILL.md technical reference, README user guide, evals.json test cases, and a per-skill fixes.md learning log.</p>
+      <div class="card-grid">
+
+        <article class="card">
+          <div class="card-accent-top" style="background:var(--orange);"></div>
+          <h3 style="color:var(--orange);">🔄 ixnetwork-to-keng-converter</h3>
+          <p class="card-desc">IxNetwork config → OTG format migration</p>
+          <ul>
+            <li>Feasibility analysis (supported / unsupported features)</li>
+            <li>RestPy code or JSON auto-detection</li>
+            <li>Detailed conversion report with warnings</li>
+            <li>BGP, Ethernet, IPv4, VLAN support</li>
+          </ul>
+          <span class="badge badge-green">Production-Ready</span>
+        </article>
+
+        <article class="card">
+          <div class="card-accent-top" style="background:var(--success);"></div>
+          <h3 style="color:var(--success);">🎯 otg-config-generator</h3>
+          <p class="card-desc">Natural language → OTG JSON configuration</p>
+          <ul>
+            <li>"Create BGP test with 2 ports" → valid config</li>
+            <li>Schema validation &amp; constraint checking</li>
+            <li>BGP, ISIS, LACP, LLDP, VLANs, LAGs</li>
+            <li>Paired with subagent for full orchestration</li>
+          </ul>
+          <span class="badge badge-green">Production-Ready</span>
+        </article>
+
+        <article class="card">
+          <div class="card-accent-top" style="background:var(--purple);"></div>
+          <h3 style="color:var(--purple);">🐍 snappi-script-generator</h3>
+          <p class="card-desc">OTG config → standalone executable Python scripts</p>
+          <ul>
+            <li>No external dependencies — <code>python test.py</code> immediately</li>
+            <li>Protocol setup, traffic control, state polling</li>
+            <li>BGP convergence polling, metrics collection</li>
+            <li>Error handling, retries, graceful cleanup</li>
+          </ul>
+          <span class="badge badge-green">Production-Ready</span>
+        </article>
+
+        <article class="card">
+          <div class="card-accent-top" style="background:var(--accent);"></div>
+          <h3 style="color:var(--accent);">🚢 ixia-c-deployment</h3>
+          <p class="card-desc">Infrastructure provisioning &amp; validation</p>
+          <ul>
+            <li>Docker Compose (B2B, CP+DP, LAG topologies)</li>
+            <li>Containerlab (ixia-c-one, per-component)</li>
+            <li>veth pairs, health checks, port location mapping</li>
+            <li>Output feeds directly into config generator</li>
+          </ul>
+          <span class="badge badge-green">Production-Ready</span>
+        </article>
+
+        <article class="card">
+          <div class="card-accent-top" style="background:var(--red);"></div>
+          <h3 style="color:var(--red);">📋 keng-licensing</h3>
+          <p class="card-desc">OTG licensing guidance &amp; cost estimates</p>
+          <ul>
+            <li>Developer / Team / System tier recommendations</li>
+            <li>KENG-DPLU / CPLU cost calculations</li>
+            <li>License mechanics, SE disclaimers included</li>
+            <li>Runs in parallel with other agents</li>
+          </ul>
+          <span class="badge badge-green">Production-Ready</span>
+        </article>
+
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Agents ── -->
+    <section id="agents">
+      <span class="section-label">Intelligent Orchestration</span>
+      <h2 class="section-title">4 Subagents</h2>
+      <p class="section-desc">Specialized agents that work together. Claude Code acts as orchestrator — intent parsing, dispatch, data handoff, and parallelism are automatic.</p>
+      <div class="card-grid">
+
+        <article class="card agent-blue">
+          <div class="card-accent-top"></div>
+          <h3>🔵 ixia-c-deployment-agent</h3>
+          <p class="card-desc">Infrastructure deployer (Docker / Containerlab)</p>
+          <ul>
+            <li>Chooses topology from protocol requirements</li>
+            <li>Generates docker-compose.yml or topo.clab.yml</li>
+            <li>Returns port_mapping for downstream agents</li>
+            <li>5 evaluation questions</li>
+          </ul>
+          <div class="terminal" style="margin-top:1rem;">
+            <div class="terminal-body" style="padding:0.6rem 1rem;">
+              <span class="prompt">@</span> <span class="cmd">ixia-c-deployment-agent</span><br>
+              <span class="out">Deploy Ixia-c for BGP with Docker Compose</span>
+            </div>
+          </div>
+          <span class="badge badge-green">Ready</span>
+        </article>
+
+        <article class="card agent-green">
+          <div class="card-accent-top"></div>
+          <h3>🟢 otg-config-generator-agent</h3>
+          <p class="card-desc">Intent translator (natural language → OTG config)</p>
+          <ul>
+            <li>Parses test scenarios, maps to OTG schema</li>
+            <li>Injects port locations from deployment agent</li>
+            <li>Schema compliance &amp; alignment validation</li>
+            <li>5 evaluation questions</li>
+          </ul>
+          <div class="terminal" style="margin-top:1rem;">
+            <div class="terminal-body" style="padding:0.6rem 1rem;">
+              <span class="prompt">@</span> <span class="cmd">otg-config-generator-agent</span><br>
+              <span class="out">BGP test: 2 ports, AS 65001/65002, 1000 pps</span>
+            </div>
+          </div>
+          <span class="badge badge-green">Ready</span>
+        </article>
+
+        <article class="card agent-purple">
+          <div class="card-accent-top"></div>
+          <h3>🟣 snappi-script-generator-agent</h3>
+          <p class="card-desc">Script executor (OTG config → Python)</p>
+          <ul>
+            <li>Standalone Snappi scripts, no external deps</li>
+            <li>Embeds all infrastructure &amp; protocol details</li>
+            <li>Assertions, metrics collection, JSON reporting</li>
+            <li>5 evaluation questions</li>
+          </ul>
+          <div class="terminal" style="margin-top:1rem;">
+            <div class="terminal-body" style="padding:0.6rem 1rem;">
+              <span class="prompt">@</span> <span class="cmd">snappi-script-generator-agent</span><br>
+              <span class="out">Generate script from bgp_config.json</span>
+            </div>
+          </div>
+          <span class="badge badge-green">Ready</span>
+        </article>
+
+        <article class="card agent-orange">
+          <div class="card-accent-top"></div>
+          <h3>🟠 keng-licensing-agent</h3>
+          <p class="card-desc">Licensing advisor (cost estimation)</p>
+          <ul>
+            <li>DPLU / CPLU cost calculations</li>
+            <li>Tier comparison &amp; recommendations</li>
+            <li>SE disclaimers always included</li>
+            <li>5 evaluation questions</li>
+          </ul>
+          <div class="terminal" style="margin-top:1rem;">
+            <div class="terminal-body" style="padding:0.6rem 1rem;">
+              <span class="prompt">@</span> <span class="cmd">keng-licensing-agent</span><br>
+              <span class="out">4×100GE + 8 BGP sessions — what license?</span>
+            </div>
+          </div>
+          <span class="badge badge-green">Ready</span>
+        </article>
+
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Commands ── -->
+    <section id="commands">
+      <span class="section-label">Command Framework</span>
+      <h2 class="section-title">16 Claude Commands</h2>
+      <p class="section-desc">Three tiers of slash commands — from discovery and onboarding, to quick skill shortcuts, to full end-to-end orchestration workflows.</p>
+
+      <!-- Section C -->
+      <div class="tier-header">
+        <div class="tier-dot" style="background:var(--tier-c);"></div>
+        <div>
+          <span class="tier-title" style="color:var(--tier-c);">Section C — Help &amp; Discovery</span>
+          <span class="tier-meta">&nbsp;·&nbsp; 7 commands &nbsp;·&nbsp; Use when new to the plugin or exploring capabilities</span>
+        </div>
+      </div>
+      <div class="cmd-grid tier-c">
+        <div class="cmd-card"><code>/kengotg-keng-help</code><p>Plugin overview &amp; quick start</p></div>
+        <div class="cmd-card"><code>/kengotg-show-skills</code><p>List all 5 skills with descriptions</p></div>
+        <div class="cmd-card"><code>/kengotg-show-agents</code><p>List 4 agents &amp; orchestration</p></div>
+        <div class="cmd-card"><code>/kengotg-show-architecture</code><p>Architecture diagrams &amp; patterns</p></div>
+        <div class="cmd-card"><code>/kengotg-examples</code><p>8 real-world workflow examples</p></div>
+        <div class="cmd-card"><code>/kengotg-skill-help</code><p>Detailed skill documentation</p></div>
+        <div class="cmd-card"><code>/kengotg-eval-agents</code><p>Agent evaluation framework (20 Q)</p></div>
+      </div>
+
+      <!-- Section A -->
+      <div class="tier-header">
+        <div class="tier-dot" style="background:var(--tier-a);"></div>
+        <div>
+          <span class="tier-title" style="color:var(--tier-a);">Section A — Skill Shortcuts</span>
+          <span class="tier-meta">&nbsp;·&nbsp; 5 commands &nbsp;·&nbsp; Quick wrappers with sensible defaults</span>
+        </div>
+      </div>
+      <div class="cmd-grid tier-a">
+        <div class="cmd-card"><code>/kengotg-otg-gen</code><p>Quick OTG config generation</p></div>
+        <div class="cmd-card"><code>/kengotg-snappi-script</code><p>Quick Snappi script generation</p></div>
+        <div class="cmd-card"><code>/kengotg-deploy-ixia</code><p>Quick Ixia-c deployment</p></div>
+        <div class="cmd-card"><code>/kengotg-licensing</code><p>Quick licensing check</p></div>
+        <div class="cmd-card"><code>/kengotg-migrate-ix</code><p>Quick IxNetwork migration</p></div>
+      </div>
+
+      <!-- Section B -->
+      <div class="tier-header">
+        <div class="tier-dot" style="background:var(--tier-b);"></div>
+        <div>
+          <span class="tier-title" style="color:var(--tier-b);">Section B — Workflow Orchestration</span>
+          <span class="tier-meta">&nbsp;·&nbsp; 4 commands &nbsp;·&nbsp; End-to-end multi-agent pipelines</span>
+        </div>
+      </div>
+      <div class="cmd-grid tier-b">
+        <div class="cmd-card"><code>/kengotg-create-test</code><p>Full pipeline: deploy → config → script</p></div>
+        <div class="cmd-card"><code>/kengotg-quick-bgp-test</code><p>BGP test with optimized defaults</p></div>
+        <div class="cmd-card"><code>/kengotg-migrate-and-run</code><p>IxNetwork migration + execution</p></div>
+        <div class="cmd-card"><code>/kengotg-check-licensing</code><p>Complete licensing evaluation</p></div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Orchestration Patterns ── -->
+    <section id="patterns">
+      <span class="section-label">Orchestration</span>
+      <h2 class="section-title">6 Workflow Patterns</h2>
+      <p class="section-desc">Claude classifies user intent and selects the right agent sequence automatically — no manual routing required.</p>
+
+      <div class="pattern-block">
+        <h4>Pattern 1 — Greenfield: Full Pipeline</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">deployment</span><span class="flow-arrow">→</span>
+          <span class="flow-step">config</span><span class="flow-arrow">→</span>
+          <span class="flow-step">script</span>
+        </div>
+        <p>Trigger: "Create BGP test + deploy + script". All three agents run sequentially. Port mapping from deployment feeds into config; config feeds into script.</p>
+      </div>
+
+      <div class="pattern-block">
+        <h4>Pattern 2 — Existing Infrastructure</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">config</span><span class="flow-arrow">→</span>
+          <span class="flow-step">script</span>
+        </div>
+        <p>Trigger: "I have ixia-c at localhost:8443". Skip deployment. Provide known port locations directly to the config generator.</p>
+      </div>
+
+      <div class="pattern-block">
+        <h4>Pattern 3 — Parallel: Deploy + Licensing</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">deployment</span>
+          <span class="flow-parallel">∥ parallel ∥</span>
+          <span class="flow-step">licensing</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-step">config</span><span class="flow-arrow">→</span>
+          <span class="flow-step">script</span>
+        </div>
+        <p>Deployment and licensing run simultaneously, then reconverge at config generation. Full pipeline with cost estimate in parallel.</p>
+      </div>
+
+      <div class="pattern-block">
+        <h4>Pattern 4 — Licensing Only</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">licensing</span>
+        </div>
+        <p>Trigger: "What license for 4×100GE + 8 BGP?". Single agent, standalone cost estimation with tier comparison.</p>
+      </div>
+
+      <div class="pattern-block">
+        <h4>Pattern 5 — IxNetwork Migration</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">convert</span><span class="flow-arrow">→</span>
+          <span class="flow-step">config</span><span class="flow-arrow">→</span>
+          <span class="flow-step">script</span>
+        </div>
+        <p>Trigger: "Migrate IxNetwork config to OTG". Conversion skill outputs OTG JSON; feeds downstream into config generator, then script generator.</p>
+      </div>
+
+      <div class="pattern-block">
+        <h4>Pattern 6 — Config Only</h4>
+        <div class="pattern-flow">
+          <span class="flow-step">config</span>
+        </div>
+        <p>Trigger: "Generate OTG config from this description". Single agent produces OTG JSON only — no deployment, no script.</p>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>⚠ Critical: Port Alignment</strong> — After deployment, always extract <code>port_mapping</code> and inject it into the config generator. Misalignment causes HTTP 400 "location not found" at runtime.<br><br>
+        <strong>Location format by deployment type:</strong><br>
+        Docker Compose (host network): <code>veth-a</code>, <code>veth-z</code> &nbsp;·&nbsp;
+        Docker Compose (port mapping): <code>localhost:5555</code> &nbsp;·&nbsp;
+        Containerlab: <code>eth1</code>, <code>eth2</code>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Artifacts Library — NEW ── -->
+    <section id="artifacts">
+      <span class="section-label">New · Verified Library</span>
+      <h2 class="section-title">Artifacts Library</h2>
+      <p class="section-desc">A permanent catalog of verified, working deployment configs and Snappi scripts. Agents check here before generating new output — ask reuse or regenerate.</p>
+
+      <div class="callout callout-purple">
+        <strong>How agents use it:</strong> Before generating, agents read the INDEX.md catalog and surface existing options.
+        After generating, output is saved back with a descriptive filename and appended to the catalog.
+        The library persists across all <code>/kengotg-cleanup</code> runs — infrastructure gets torn down, artifacts stay.
+      </div>
+
+      <div class="artifact-grid" style="margin-top:1.5rem;">
+        <div class="artifact-card">
+          <h4>📁 artifacts/deployment/</h4>
+          <p>Verified Docker Compose and Containerlab deployment configs, ready to bring up.</p>
+          <span class="path-tag">artifacts/deployment/INDEX.md</span>
+          <div class="artifact-items">
+            <div class="artifact-item">Columns: File · Protocol · Ports · Method · Date · Notes</div>
+            <div class="artifact-item">Example: <code>bgp-2port-docker-compose.yml</code></div>
+            <div class="artifact-item">Never cleared by <code>/kengotg-cleanup</code></div>
+          </div>
+          <span class="badge badge-purple">New</span>
+        </div>
+        <div class="artifact-card">
+          <h4>📁 artifacts/snappi-scripts/</h4>
+          <p>Verified, immediately runnable Python Snappi test scripts with embedded configs.</p>
+          <span class="path-tag">artifacts/snappi-scripts/INDEX.md</span>
+          <div class="artifact-items">
+            <div class="artifact-item">Columns: File · Protocol · Ports · Controller · Date · Notes</div>
+            <div class="artifact-item">Example: <code>bgp-2port-test.py</code></div>
+            <div class="artifact-item">Run immediately: <code>python bgp-2port-test.py</code></div>
+          </div>
+          <span class="badge badge-purple">New</span>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Quick Start ── -->
+    <section id="quickstart">
+      <span class="section-label">Get Started</span>
+      <h2 class="section-title">Quick Start Paths</h2>
+      <p class="section-desc">Choose based on your goal — from first-time exploration to direct agent invocation.</p>
+
+      <div class="path-grid">
+        <div class="path-card">
+          <h4>New User <span class="badge badge-blue">5 min</span></h4>
+          <ul class="path-steps">
+            <li><span class="step-num">1</span><code>/kengotg-keng-help</code></li>
+            <li><span class="step-num">2</span><code>/kengotg-show-skills</code></li>
+            <li><span class="step-num">3</span><code>/kengotg-examples</code></li>
+            <li><span class="step-num">4</span>Pick a scenario and invoke it</li>
+          </ul>
+        </div>
+        <div class="path-card">
+          <h4>Quick BGP Test <span class="badge badge-blue">10 min</span></h4>
+          <ul class="path-steps">
+            <li><span class="step-num">1</span><code>/kengotg-quick-bgp-test</code></li>
+            <li><span class="step-num">2</span>Receive docker-compose.yml + test script</li>
+            <li><span class="step-num">3</span><code>python test_bgp.py</code></li>
+          </ul>
+        </div>
+        <div class="path-card">
+          <h4>Full Pipeline <span class="badge badge-blue">15 min</span></h4>
+          <ul class="path-steps">
+            <li><span class="step-num">1</span><code>/kengotg-create-test</code></li>
+            <li><span class="step-num">2</span>Describe test scenario &amp; topology</li>
+            <li><span class="step-num">3</span>Receive infra + config + script</li>
+            <li><span class="step-num">4</span>Run immediately</li>
+          </ul>
+        </div>
+        <div class="path-card">
+          <h4>Advanced: Direct Agents</h4>
+          <ul class="path-steps">
+            <li><span class="step-num">1</span><code>@ixia-c-deployment-agent</code></li>
+            <li><span class="step-num">2</span><code>@otg-config-generator-agent</code></li>
+            <li><span class="step-num">3</span><code>@snappi-script-generator-agent</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+            <span class="term-label">end-to-end BGP test — direct agent invocation</span>
+          </div>
+          <div class="terminal-body">
+<span class="comment"># Step 1 — Deploy Ixia-c</span>
+<span class="prompt">@</span> <span class="cmd">ixia-c-deployment-agent</span> <span class="out">Deploy Ixia-c Docker Compose for BGP back-to-back</span>
+<span class="out">  ↳ port_mapping: {"te1": "veth-a", "te2": "veth-z"}</span>
+
+<span class="comment"># Step 2 — Generate OTG config (inject port_mapping from above)</span>
+<span class="prompt">@</span> <span class="cmd">otg-config-generator-agent</span> <span class="out">BGP test: 2 ports, AS 65001/65002, 1000 pps, port_mapping above</span>
+<span class="out">  ↳ bgp_config.json (OTG-compliant, schema-validated)</span>
+
+<span class="comment"># Step 3 — Generate executable script</span>
+<span class="prompt">@</span> <span class="cmd">snappi-script-generator-agent</span> <span class="out">Generate script from bgp_config.json</span>
+<span class="out">  ↳ test_bgp.py (standalone, no external deps)</span>
+
+<span class="comment"># Step 4 — Run</span>
+<span class="prompt">$</span> <span class="cmd">python test_bgp.py</span>
+<span class="out">  ↳ BGP sessions: established  |  Packet loss: 0%  ✓</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Learning System ── -->
+    <section id="learning">
+      <span class="section-label">New · Institutional Memory</span>
+      <h2 class="section-title">Per-Skill Learning System</h2>
+      <p class="section-desc">Every mistake becomes permanent institutional knowledge. Each skill owns a fixes.md — agents read it at invocation, closing the learning loop automatically.</p>
+
+      <div class="callout callout-success">
+        <strong>Architecture:</strong> Each skill's SKILL.md contains a <code>fixes.md</code> pointer.
+        When a skill is invoked, the agent reads the co-located fixes.md before generating output.
+        Errors discovered during execution are added back — mistakes become prevention rules.
+      </div>
+
+      <div style="margin-top:1.5rem;">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+            <span class="term-label">.claude/skills/*/fixes.md — per-skill learning logs</span>
+          </div>
+          <div class="terminal-body">
+<span class="comment"># One fixes.md per skill — co-located with SKILL.md</span>
+<span class="out">.claude/skills/otg-config-generator/fixes.md</span>
+<span class="out">.claude/skills/snappi-script-generator/fixes.md</span>
+<span class="out">.claude/skills/ixia-c-deployment/fixes.md</span>
+<span class="out">.claude/skills/keng-licensing/fixes.md</span>
+<span class="out">.claude/skills/ixnetwork-to-keng-converter/fixes.md</span>
+
+<span class="comment"># Entry format</span>
+<span class="prompt">###</span> <span class="cmd">[API] Correct endpoint for OTG config push</span>
+<span class="out">Wrong:  /api/v1/config</span>
+<span class="out">Right:  /config</span>
+<span class="out">Why:    Controller exposes flat API, not versioned path</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:1.75rem;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Rule</th><th>Wrong</th><th>Right</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>API endpoint</td>
+                <td><code>/api/v1/config</code></td>
+                <td><code>/config</code></td>
+              </tr>
+              <tr>
+                <td>Traffic duration</td>
+                <td><code>fixed_seconds</code> — crashes keng-controller</td>
+                <td><code>continuous</code> duration</td>
+              </tr>
+              <tr>
+                <td>Config loading (Snappi)</td>
+                <td><code>cfg.loads()</code> — doesn't exist</td>
+                <td><code>cfg.deserialize()</code></td>
+              </tr>
+              <tr>
+                <td>Flow rate type</td>
+                <td><code>"line"</code> — OTG allows, Snappi rejects</td>
+                <td><code>"percentage"</code></td>
+              </tr>
+              <tr>
+                <td>Docker Compose image</td>
+                <td><code>ixia-c-one</code> — Containerlab only</td>
+                <td>Separate controller + TE containers</td>
+              </tr>
+              <tr>
+                <td>TLS verification</td>
+                <td>Default cert verification fails (self-signed)</td>
+                <td><code>curl -k</code> / <code>verify=False</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Architecture ── -->
+    <section id="architecture">
+      <span class="section-label">Design</span>
+      <h2 class="section-title">Architecture Highlights</h2>
+      <p class="section-desc">Four design pillars that make the plugin robust, composable, and self-improving.</p>
+
+      <div class="card-grid" style="margin-bottom:2rem;">
+        <div class="card">
+          <h3 style="color:var(--accent);">Skill-Based Architecture</h3>
+          <p class="card-desc">Skills, not traditional code modules.</p>
+          <ul>
+            <li>Self-contained — logic, references, evals, fixes</li>
+            <li>Composable — invoke independently or chain</li>
+            <li>SKILL.md + README.md + fixes.md per skill</li>
+            <li>evals.json test cases (4–8 scenarios each)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--success);">Subagent Orchestration</h3>
+          <p class="card-desc">Claude Code as orchestrator, not executor.</p>
+          <ul>
+            <li>Parse intent → classify workflow pattern</li>
+            <li>Dispatch to specialized agents</li>
+            <li>Data handoff (port_mapping across agents)</li>
+            <li>Parallel execution for independent tasks</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--purple);">Command-Driven Interface</h3>
+          <p class="card-desc">16 Claude Commands across three tiers.</p>
+          <ul>
+            <li>C — Discovery &amp; help (7 commands)</li>
+            <li>A — Skill shortcuts with defaults (5 commands)</li>
+            <li>B — End-to-end workflow orchestration (4 commands)</li>
+            <li>~150 KB total command documentation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color:var(--orange);">Verified Artifacts Library</h3>
+          <p class="card-desc">Permanent catalog of working configs and scripts.</p>
+          <ul>
+            <li>Agents check catalog before generating</li>
+            <li>Reuse or regenerate — user decides</li>
+            <li>Survives all <code>/kengotg-cleanup</code> runs</li>
+            <li>INDEX.md with metadata per folder</li>
+          </ul>
+          <span class="badge badge-purple">New</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>File / Path</th><th>Purpose</th><th>For Whom</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>README.md</code></td><td>Project overview, skill descriptions, workflow examples</td><td>New users</td></tr>
+            <tr><td><code>AGENT_ORCHESTRATION_PLAN.md</code></td><td>Orchestration patterns, intent classification, decision tree</td><td>Architects</td></tr>
+            <tr><td><code>CLAUDE.md</code></td><td>Agent instructions, standards, architecture guidance</td><td>Claude Code</td></tr>
+            <tr><td><code>.claude/skills/*/SKILL.md</code></td><td>Technical reference, known limits, critical patterns</td><td>Agents &amp; developers</td></tr>
+            <tr><td><code>.claude/skills/*/README.md</code></td><td>User guide, troubleshooting</td><td>End users</td></tr>
+            <tr><td><code>.claude/skills/*/fixes.md</code></td><td>Discovered issues, root causes, prevention rules</td><td>Agents (read at invocation)</td></tr>
+            <tr><td><code>.claude/agents/*/</code></td><td>Agent specs, responsibilities, 20 eval questions</td><td>Claude orchestrator</td></tr>
+            <tr><td><code>.claude/commands/</code></td><td>16 Claude Commands — YAML frontmatter + markdown</td><td>Users via /commands</td></tr>
+            <tr><td><code>artifacts/</code></td><td>Verified deployment configs &amp; Snappi scripts with INDEX catalogs</td><td>Agents &amp; users</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div><!-- /container -->
+
+  <footer>
+    <div class="container">
+      <div class="footer-title" style="font-family:'DM Mono',monospace;font-size:1rem;">keng-otg-skills <span style="color:var(--text-dim);font-weight:400;font-size:0.82rem;">v2.0</span></div>
+      <p class="footer-pills">5 Skills &nbsp;·&nbsp; 4 Agents &nbsp;·&nbsp; 16 Commands &nbsp;·&nbsp; Vendor-neutral &nbsp;·&nbsp; OTG v0.11.0+</p>
+      <p class="footer-meta">Ashwin Joshi &nbsp;·&nbsp; Keysight Technologies &nbsp;·&nbsp; March 2026</p>
+      <div class="footer-links">
+        <a href="https://github.com/open-traffic-generator/ixia-c">Ixia-c GitHub</a>
+        <a href="https://github.com/open-traffic-generator/snappi">Snappi SDK</a>
+        <a href="https://otg.dev">OTG Spec</a>
+        <a href="mailto:your.email@keysight.com">Contact</a>
+      </div>
+    </div>
+  </footer>
 
   <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      themeVariables: {
-        primaryColor: '#161c26',
-        primaryTextColor: '#e6edf3',
-        primaryBorderColor: '#30363d',
-        lineColor: '#58a6ff',
-        secondaryColor: '#12171f',
-        tertiaryColor: '#0a0e14'
-      },
-      flowchart: {
-        useMaxWidth: true,
-        htmlLabels: true,
-        curve: 'basis'
-      }
-    });
+    // Highlight active nav link as user scrolls through sections
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+
+    sections.forEach(s => observer.observe(s));
   </script>
 </body>
 </html>
