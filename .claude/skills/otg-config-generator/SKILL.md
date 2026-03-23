@@ -16,6 +16,8 @@ compatibility: References openapi.yaml at the project root for schema validation
 
 # OTG Configuration Generator
 
+> ⚠️ Read `fixes.md` in this directory before generating any output.
+
 Generate valid Open Traffic Generator (OTG) JSON configurations from natural language test scenarios.
 
 ## How It Works
@@ -547,48 +549,3 @@ peer with 10.0.0.1 AS 65001. Traffic from port1 to port2 at 1000 pps.
 }
 ```
 
-## Known Pitfalls (Validated Against ixia-c keng-controller:1.48.0-5)
-
-These have caused real test failures. Read before generating any BGP config.
-
-### BGP: as_number is the LOCAL AS, not the remote AS
-`as_number` on `Bgp.V4Peer` is the AS number **this device advertises in its BGP OPEN message** — its own local AS. It is NOT the peer's AS. There is no separate "expected remote AS" field in OTG.
-
-**Correct pattern for eBGP between AS 65001 and AS 65002:**
-```json
-// device1 (local AS 65001, peering toward device2 at 10.0.0.2)
-{ "peer_address": "10.0.0.2", "as_type": "ebgp", "as_number": 65001 }
-
-// device2 (local AS 65002, peering toward device1 at 10.0.0.1)
-{ "peer_address": "10.0.0.1", "as_type": "ebgp", "as_number": 65002 }
-```
-
-**Wrong (swapped values):** Setting `as_number: 65002` on device1 causes a BGP NOTIFICATION (AS mismatch) and sessions never establish.
-
-### BGP: Back-to-Back (B2B) — Set passive_mode on one side
-When both devices are emulated by ixia-c in a back-to-back topology (veth pair), both peers attempt to open TCP simultaneously, triggering BGP connection collision. The collision resolution sends a NOTIFICATION and the session flaps. Fix: set `passive_mode: true` on one peer so only the active side initiates TCP.
-
-```json
-// device2's peer — passive side (accepts incoming TCP only)
-{
-  "peer_address": "10.0.0.1",
-  "as_type": "ebgp",
-  "as_number": 65002,
-  "advanced": { "passive_mode": true }
-}
-```
-
-Only one side should be passive. The active side (no passive_mode) initiates the TCP connection.
-
-### Flow duration: prefer "continuous" over "fixed_seconds" for ixia-c
-`"duration": { "choice": "fixed_seconds", "fixed_seconds": { "seconds": N } }` causes the keng-controller (v1.48.0-5) to crash-restart when flows self-terminate. Use `"duration": { "choice": "continuous" }` instead and stop traffic programmatically from the test script after the desired duration.
-
-## Edge Cases
-
-- **Device connection to LAG instead of port** — Use `connection.choice: "lag_name"` and reference the LAG
-- **Multiple Ethernet interfaces per device** — Add multiple objects to `ethernets` array
-- **VLAN-tagged traffic** — Include VLAN headers in flow packets or device Ethernet config
-- **Stateful flows** — Use `stateful_flows` at top level (more complex, ask for clarification if needed)
-- **Capture requirements** — Add to `captures` array with port and filter specs
-- **Loopback addresses** — Use `ipv4_loopbacks` / `ipv6_loopbacks` on Device (NOT inside ethernets)
-- **Device-based flows** — When traffic follows BGP learned routes, use `tx_rx.choice: "device"` with route range names as tx/rx
