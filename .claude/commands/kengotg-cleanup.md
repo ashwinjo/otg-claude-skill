@@ -13,6 +13,8 @@ Remove all running Ixia-c containers, veth pairs, Docker networks, and Container
 
 Runs a multi-step cleanup sequence. Each step is independent — failures in one step don't block the others.
 
+> **Note:** This command does not modify `artifacts/` — your verified deployment configs and Snappi scripts are preserved across cleanups.
+
 ### Step 1: Stop and remove Ixia-c Docker containers
 
 Find and remove all containers matching Ixia-c naming patterns:
