@@ -98,6 +98,12 @@ kengotg/
 ├── openapi.yaml                        ← OTG schema reference (required by skills)
 ├── bgp_keng.json                       ← Example OTG config output
 │
+├── artifacts/                          ← Verified artifact library (permanent, never cleared by cleanup)
+│   ├── deployment/
+│   │   └── INDEX.md                    ← Catalog of verified deployment configs
+│   └── snappi-scripts/
+│       └── INDEX.md                    ← Catalog of verified Snappi scripts
+│
 └── .claude/
     ├── settings.local.json             ← Claude Code workspace settings
     │
@@ -396,6 +402,49 @@ Each skill has its own `fixes.md` co-located with its `SKILL.md`:
 
 ---
 
+## Verified Artifacts Library
+
+### Purpose
+Store verified, working deployment configs and Snappi scripts for reuse across sessions. Agents check the catalog first, surface existing options, and only generate fresh output when explicitly requested.
+
+### Structure
+```
+artifacts/
+├── deployment/
+│   ├── INDEX.md          ← agents read this before generating configs
+│   └── *.yml / *.yaml    ← verified deployment configs
+└── snappi-scripts/
+    ├── INDEX.md          ← agents read this before generating scripts
+    └── *.py              ← verified Snappi test scripts
+```
+
+### How Agents Use It
+
+**Before generating (read-path):**
+1. Read `artifacts/<folder>/INDEX.md`
+2. List existing verified files to the user
+3. Ask: **reuse** or **regenerate**?
+
+**After generating (write-path):**
+1. Derive a descriptive filename (e.g. `bgp-2port-docker-compose.yml`, `bgp-2port-test.py`)
+2. Save file to `artifacts/<folder>/`
+3. Append a row to `artifacts/<folder>/INDEX.md`
+4. On name collision: ask user — overwrite or keep both?
+
+### INDEX.md Schema
+
+`artifacts/deployment/INDEX.md` columns: `File | Protocol | Ports | Method | Date | Notes`
+
+`artifacts/snappi-scripts/INDEX.md` columns: `File | Protocol | Ports | Controller | Date | Notes`
+
+### SKILL.md Pointers
+Both `ixia-c-deployment/SKILL.md` and `snappi-script-generator/SKILL.md` have a `> 📁` blockquote pointer near the top directing agents to check the catalog before generating. This is the enforcement mechanism.
+
+### Cleanup Behavior
+`/kengotg-cleanup` **never touches `artifacts/`**. The command tears down infrastructure only (containers, topologies, veth pairs). The artifacts library persists across all cleanup runs.
+
+---
+
 ## Orchestrator Decision Points
 
 ### When to Dispatch Which Agent
@@ -446,6 +495,8 @@ From CLAUDE.md at `/Users/ashwin.joshi/.claude/CLAUDE.md` (global preferences):
 
 ## References & Important Files
 
+- **`artifacts/deployment/INDEX.md`** — Verified deployment config catalog; read before generating configs
+- **`artifacts/snappi-scripts/INDEX.md`** — Verified Snappi script catalog; read before generating scripts
 - **`.claude/skills/<skill>/fixes.md`** — Per-skill agent learning logs; read at skill invocation
 - **README.md** — Project overview, workflow examples, skill descriptions
 - **AGENT_ORCHESTRATION_PLAN.md** — Detailed orchestration patterns, use cases, decision tree
@@ -477,4 +528,5 @@ From CLAUDE.md at `/Users/ashwin.joshi/.claude/CLAUDE.md` (global preferences):
 | ├─ Section A (Shortcuts) | 1.0 | ✅ Ready | 5 quick-access commands |
 | └─ Section B (Workflows) | 1.0 | ✅ Ready | 4 end-to-end commands |
 | **Orchestration** | 1.0 | ✅ Ready | 6 use cases, parallel dispatch |
+| **Artifacts Library** | 1.0 | ✅ Ready | deployment/ + snappi-scripts/ with INDEX.md catalogs |
 | **Documentation** | 2.0 | ✅ Ready | 500+ KB total, highly discoverable |
