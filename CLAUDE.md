@@ -366,45 +366,33 @@ cat .claude/agents/eval-sets/ixia-c-deployment-agent-eval.json
 
 ## Agent Learning & Error Recovery
 
-### fixes.md — Mistake & Solution Log
-**File:** `fixes.md` at project root
+### Per-Skill fixes.md — Agent Learning Log
 
-This file documents all mistakes discovered by Claude agents during execution, along with their root causes and solutions. It serves as institutional memory for the project.
+Each skill has its own `fixes.md` co-located with its `SKILL.md`:
 
-**How to use this file:**
+```
+.claude/skills/<skill-name>/fixes.md
+```
 
-1. **At session start:** Scan `fixes.md` for known issues that might apply to current work
-2. **During agent development:** Check relevant category before implementing new logic
-3. **On error:** Search by symptom, implement documented solution, prevent future occurrence
-4. **After fixing an issue:** Add new entry with full context so future agents learn
-5. **In code comments:** Reference issues by section (e.g., "See fixes.md: Port Alignment Issues")
+**How to use:**
+1. **At skill invocation:** Each SKILL.md has a pointer — read `fixes.md` before generating output
+2. **On error:** Add a new entry at the bottom using the wrong/right/why format
+3. **Cross-cutting fixes:** Duplicate in all affected skills — skills are self-contained
 
 **Entry format:**
 ```markdown
-### [Category] [Issue Title]
-**Date:** YYYY-MM-DD
-**Agent:** [Agent name]
-**Symptom:** [What failed]
-**Root Cause:** [Why it happened]
-**Solution:** [How it was fixed]
-**Prevention:** [How to avoid next time]
-**Status:** ✅ Fixed | 🔧 Monitoring | ⚠️ Partial fix
+### [Category] Short Title
+**Wrong:** `the pattern that fails`
+**Right:** `the correct pattern`
+**Why:** One-sentence rule
 ```
 
-**Categories tracked:**
-- Port Alignment — Port mapping, location mismatches
-- Script Generation — Python syntax, Snappi SDK, imports
-- Config Validation — OTG schema violations
-- Deployment — Docker/Containerlab failures
-- Licensing — Cost calculations, license tiers
-- Data Handoff — Agent-to-agent format issues
-- CLI/API — Command invocation, auth, rate limits
-- Type Hints — Python type annotation issues
-- State Management — Inconsistent state, race conditions
-- Error Handling — Silent failures, unclear messages
-- Documentation — Missing context, unclear instructions
-
-**Purpose:** Build an agent feedback loop where mistakes become documented patterns, reducing repetition and improving reliability.
+**Skills with fixes.md:**
+- `.claude/skills/otg-config-generator/fixes.md`
+- `.claude/skills/snappi-script-generator/fixes.md`
+- `.claude/skills/ixia-c-deployment/fixes.md`
+- `.claude/skills/keng-licensing/fixes.md`
+- `.claude/skills/ixnetwork-to-keng-converter/fixes.md`
 
 ---
 
@@ -458,7 +446,7 @@ From CLAUDE.md at `/Users/ashwin.joshi/.claude/CLAUDE.md` (global preferences):
 
 ## References & Important Files
 
-- **fixes.md** — Agent learning log: mistakes, root causes, solutions (read at session start ⭐)
+- **`.claude/skills/<skill>/fixes.md`** — Per-skill agent learning logs; read at skill invocation
 - **README.md** — Project overview, workflow examples, skill descriptions
 - **AGENT_ORCHESTRATION_PLAN.md** — Detailed orchestration patterns, use cases, decision tree
 - **.claude/skills/INDEX.md** — Skill technical overview
