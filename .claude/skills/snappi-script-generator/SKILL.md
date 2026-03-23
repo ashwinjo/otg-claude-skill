@@ -18,6 +18,11 @@ compatibility: Requires snappi SDK (pip install snappi), OTG configuration JSON,
 
 > ⚠️ Read `fixes.md` in this directory before generating any output.
 
+> 📁 Before generating any Snappi script, read `artifacts/snappi-scripts/INDEX.md`.
+> List existing verified scripts to the user and ask: **reuse** or **regenerate**?
+> When saving a new script: derive a descriptive filename (e.g. `bgp-2port-test.py`),
+> append a row to `artifacts/snappi-scripts/INDEX.md`. On name collision: ask overwrite or keep both.
+
 Generate executable Python Snappi scripts from OTG configurations and infrastructure specifications.
 
 ## How It Works
