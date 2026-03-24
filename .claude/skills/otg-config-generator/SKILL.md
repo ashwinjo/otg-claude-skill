@@ -20,6 +20,11 @@ compatibility: References openapi.yaml at the project root for schema validation
 
 Generate valid Open Traffic Generator (OTG) JSON configurations from natural language test scenarios.
 
+> 📚 **Reference Library** — Before generating, consult `references/snappi_tests_otg_configs.md`
+> for verified OTG JSON examples (quickstart, bidirectional UDP, bidirectional TCP) showing
+> correct `choice` fields, pattern types (value/values/increment/decrement), layer1, captures, and metrics.
+> Source: https://github.com/open-traffic-generator/snappi-tests/tree/main/configs
+
 ## How It Works
 
 You receive a test scenario description from the user and produce a complete OTG configuration object (Config schema) that:

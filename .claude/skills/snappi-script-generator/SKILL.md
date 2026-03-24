@@ -28,6 +28,17 @@ compatibility: Requires snappi SDK (pip install snappi), OTG configuration JSON,
 
 Generate executable Python Snappi scripts from OTG configurations and infrastructure specifications.
 
+> 📚 **Reference Library** — Before generating, consult these references in `references/`:
+> - `snappi_tests_scripts.md` — Official standalone scripts (hello_snappi, quickstart, multi-backend)
+> - `snappi_tests_pytest_framework.md` — Pytest fixtures, utils (start_traffic, wait_for, get_all_stats)
+> - `snappi_tests_protocol_tests.md` — UDP/TCP/IP/raw test patterns with capture validation
+> - `snappi_tests_advanced.md` — VXLAN tunnels, BGP convergence, Go/gosnappi examples
+> - `github_snippets.md` — Core SDK patterns (API init, serialization, metrics, capture)
+> - `protocol_examples.md` — Protocol-specific Snappi code patterns
+> - `assertion_patterns.md` — Assertion and validation patterns
+>
+> Source: https://github.com/open-traffic-generator/snappi-tests
+
 ## How It Works
 
 You provide:
