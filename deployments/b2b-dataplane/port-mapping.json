@@ -1,0 +1,37 @@
+{
+  "containers": {
+    "controller": "keng-controller",
+    "traffic_engines": ["ixia-c-te-a", "ixia-c-te-b"]
+  },
+  "ports": {
+    "te_a": {
+      "location": "veth-a",
+      "listen_port": 5555,
+      "container": "ixia-c-te-a",
+      "interface": "veth-a",
+      "network_mode": "host"
+    },
+    "te_b": {
+      "location": "veth-z",
+      "listen_port": 5556,
+      "container": "ixia-c-te-b",
+      "interface": "veth-z",
+      "network_mode": "host"
+    }
+  },
+  "veth_pairs": {
+    "a_to_b": ["veth-a", "veth-z"]
+  },
+  "controller_url": "https://localhost:8443",
+  "controller_grpc_port": 40051,
+  "location_map": {
+    "veth-a": "localhost:5555",
+    "veth-z": "localhost:5556"
+  },
+  "notes": {
+    "network_mode": "host — all containers share the host network stack; no Docker port mapping",
+    "port_discovery": "Use 'docker logs keng-controller | grep HTTPS' to confirm ports (docker inspect shows empty Ports for host-network containers)",
+    "tls": "Controller uses self-signed certificate; use curl -k or snappi verify=False",
+    "otg_alignment": "OTG config port.location must match the 'location' keys in location_map: 'veth-a' and 'veth-z'"
+  }
+}

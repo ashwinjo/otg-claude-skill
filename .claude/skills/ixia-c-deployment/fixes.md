@@ -93,3 +93,59 @@ IXIA_IP=$(sudo docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress
 **Wrong:** N/A — this is a success pattern
 **Right:** Each ixia-c-one node is independently accessible at its container IP:8443; push separate OTG configs per node; FRR BGP neighbors point to ixia eth1 IPs
 **Why:** Documenting the validated topology: multiple ixia-c-one nodes + FRR DUT in Containerlab, with independent per-node API access
+
+---
+
+### [Deployment] CRITICAL: Controller location_map Is Required for TE Discovery
+**Wrong:** Pushing OTG config without first injecting `location_map` into controller container
+**Right:** 1. Create config.yaml with location_map matching OTG port locations
+         2. Inject into controller: `docker cp config.yaml keng-controller:/home/ixia-c/controller/config/`
+         3. Fix permissions: `docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml`
+         4. Push OTG config
+**Why:** Controller must know how to reach each traffic engine. Without location_map, config push fails: "both IP address and TCP port must be provided"
+
+```bash
+# Step 1: Create location_map config
+cat > config.yaml << 'EOF'
+location_map:
+  - location: veth-a
+    endpoint: localhost:5555
+  - location: veth-b
+    endpoint: localhost:5556
+EOF
+
+# Step 2: Inject into controller
+docker exec keng-controller mkdir -p /home/ixia-c/controller/config
+docker cp config.yaml keng-controller:/home/ixia-c/controller/config/
+
+# Step 3: Fix permissions (CRITICAL - without this, controller gets HTTP 500 permission denied)
+docker exec -u root keng-controller chmod 644 /home/ixia-c/controller/config/config.yaml
+
+# Step 4: Now push OTG config
+curl -sk -X POST https://localhost:8443/config -H "Content-Type: application/json" -d @otg_config.json
+```
+
+---
+
+### [Deployment] Host Network Mode: Veth Pair Must Exist Before TE Container Startup
+**Wrong:** Starting docker-compose before creating veth pair on host
+**Right:** Create veth pair BEFORE docker-compose up. If containers already failed, recreate veth and restart.
+**Why:** Traffic engine containers with `--net=host` try to bind to veth interfaces on startup. If interface doesn't exist, container exits: "Interface veth-a does not exist!"
+
+```bash
+# CORRECT ORDER:
+# 1. Create veth pair first
+sudo ip link add veth-a type veth peer name veth-b
+sudo ip link set veth-a up
+sudo ip link set veth-b up
+
+# 2. Then start containers
+docker compose -f docker-compose-b2b-dataplane.yml up -d
+
+# RECOVERY if containers already started in error:
+sudo ip link delete veth-a veth-b 2>/dev/null || true
+sudo ip link add veth-a type veth peer name veth-b
+sudo ip link set veth-a up
+sudo ip link set veth-b up
+docker restart ixia-c-te-a ixia-c-te-b
+```

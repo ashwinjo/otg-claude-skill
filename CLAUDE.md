@@ -493,8 +493,35 @@ From CLAUDE.md at `/Users/ashwin.joshi/.claude/CLAUDE.md` (global preferences):
 
 ---
 
+## Project-Level Memory
+
+Memory lives in `.claude/memory/` — checked into git, portable across servers.
+
+**IMPORTANT:** When saving learnings, feedback, or session notes, always write to `.claude/memory/` (project-level). Do NOT use the system-level auto-memory at `~/.claude/projects/*/memory/` — that path is not version-controlled and not portable.
+
+### Two-tier memory system
+
+| Layer | Location | Purpose |
+|-------|----------|---------|
+| **Skill-specific** | `.claude/skills/<skill>/fixes.md` | Technical wrong/right patterns per skill |
+| **Project-wide** | `.claude/memory/*.md` | Behavioral rules, session learnings, integration decisions |
+
+### When to write where
+
+- **Technical pattern** (wrong API call, invalid field, deployment gotcha) → `fixes.md` in the relevant skill
+- **Behavioral rule** (how to interact, what to ask, execution preferences) → `.claude/memory/feedback_*.md`
+- **Session learning** (cross-cutting discoveries from a test run) → `.claude/memory/session_*.md`
+- **Integration/architecture decision** → `.claude/memory/integration_*.md`
+
+### Index
+
+`.claude/memory/MEMORY.md` is the index. Update it when adding new memory files.
+
+---
+
 ## References & Important Files
 
+- **`.claude/memory/MEMORY.md`** — Project memory index; read at session start for context
 - **`artifacts/deployment/INDEX.md`** — Verified deployment config catalog; read before generating configs
 - **`artifacts/snappi-scripts/INDEX.md`** — Verified Snappi script catalog; read before generating scripts
 - **`.claude/skills/<skill>/fixes.md`** — Per-skill agent learning logs; read at skill invocation

@@ -13,7 +13,8 @@ Remove all running Ixia-c containers, veth pairs, Docker networks, and Container
 
 Runs a multi-step cleanup sequence. Each step is independent — failures in one step don't block the others.
 
-> **Note:** This command does not modify `artifacts/` — your verified deployment configs and Snappi scripts are preserved across cleanups.
+> **Note:** This command does not modify `artifacts/` — your verified deployment configs, Snappi scripts, and setup scripts are preserved across cleanups.
+> Setup scripts (`setup-ixia-c*.sh`) are treated as reusable artifacts and are never deleted.
 
 ### Step 1: Stop and remove Ixia-c Docker containers
 
@@ -68,12 +69,14 @@ sudo rm -rf /var/run/netns/[0-9a-f]* 2>/dev/null
 
 Only if user confirms:
 ```bash
-# Remove generated infrastructure files
+# Remove generated infrastructure files (except setup scripts)
 rm -f docker-compose*.yml docker-compose*.yaml
 rm -f topo.yml topo.yaml *.clab.yml
-rm -f setup-ixia-c*.sh
 rm -f config.yaml
 rm -f port_mapping.json
+
+# Note: setup-ixia-c*.sh scripts are preserved as reusable artifacts
+# They are NOT deleted during cleanup
 ```
 
 ### Step 6: Verify clean state

@@ -1,0 +1,74 @@
+{
+  "ports": [
+    { "name": "P1", "location": "eth1" },
+    { "name": "P2", "location": "eth2" }
+  ],
+  "flows": [
+    {
+      "name": "P1_to_P2",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "P1",
+          "rx_names": ["P2"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": { "choice": "value", "value": "00:00:00:00:00:02" },
+            "src": { "choice": "value", "value": "00:00:00:00:00:01" }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 64
+      },
+      "rate": {
+        "choice": "pps",
+        "pps": 1000
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true
+      }
+    },
+    {
+      "name": "P2_to_P1",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "P2",
+          "rx_names": ["P1"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": { "choice": "value", "value": "00:00:00:00:00:01" },
+            "src": { "choice": "value", "value": "00:00:00:00:00:02" }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 64
+      },
+      "rate": {
+        "choice": "pps",
+        "pps": 1000
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true
+      }
+    }
+  ]
+}

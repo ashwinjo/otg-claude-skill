@@ -11,7 +11,10 @@ description: |
   - Implement error handling, retry logic, and graceful cleanup in traffic test scripts
 
   The skill takes OTG configuration + infrastructure YAML and produces a fully functional, stand-alone Python script ready to execute immediately.
-compatibility: Requires snappi SDK (pip install snappi), OTG configuration JSON, infrastructure YAML
+
+  **NEW:** Skill also reports licensing requirements for your test (e.g., required KENG-SEAT licenses, data plane licenses, control plane licenses).
+
+compatibility: Requires snappi SDK (pip install snappi), OTG configuration JSON, infrastructure YAML, keng-licensing skill access
 ---
 
 # Snappi Script Generator
@@ -41,6 +44,13 @@ The skill produces a **standalone Python script** that:
 - Validates assertions (packet loss, session count, etc.)
 - Handles errors with exponential backoff retry
 - Gracefully cleans up resources
+
+The skill also **analyzes licensing requirements** by:
+- Detecting port count and speeds from OTG config
+- Identifying protocols (BGP, ISIS, LACP, LLDP) in the test
+- Calling keng-licensing skill to calculate required licenses
+- Reporting licensing details (KENG-SEAT, data plane, control plane costs)
+- Recommending appropriate license tier
 
 ## Workflow
 
@@ -650,3 +660,81 @@ Duration: 120 seconds
 Flow: Traffic to specific route (e.g., 10.0.0.0/24)
 ```
 
+
+## Licensing Information Reporting
+
+**NEW Feature:** The snappi-script-generator skill now analyzes and reports licensing requirements for your test.
+
+### What Gets Reported
+
+When generating a Snappi script, the agent automatically:
+
+1. **Analyzes test configuration:**
+   - Port count and link speeds (10G, 40G, 100G, etc.)
+   - Protocols in use (BGP, ISIS, LACP, LLDP, etc.)
+   - Traffic complexity (simple flows vs. multi-protocol)
+   - Test duration and metrics collection
+
+2. **Calls keng-licensing skill** to determine:
+   - Required **KENG-SEAT** licenses (data plane ports)
+   - Required **KENG-DPLU** (data plane line rate units) licenses
+   - Required **KENG-CPLU** (control plane protocol licenses)
+   - Estimated monthly/yearly licensing costs
+   - Recommended license tier (Developer, Team, System)
+
+3. **Reports back to user** with:
+   ```
+   ================================================================================
+   LICENSING INFORMATION
+   ================================================================================
+   Test Configuration:
+     - Ports: 2 (10Gbps each)
+     - Protocols: BGP (EBGP)
+     - Duration: 30 seconds
+     - Traffic: Bidirectional @ 100% line rate
+   
+   Required Licenses:
+     - KENG-SEAT: 2 seats × 10Gbps = 20 units
+     - KENG-DPLU: Covered by SEAT allocation
+     - KENG-CPLU: BGP × 2 = 2 control plane licenses
+   
+   Recommended License Tier:
+     - Team Tier: Suitable for this test (includes up to 10 ports)
+   
+   Cost Estimate:
+     - Monthly: $XX (includes seats + protocol support)
+     - Annual: $XXX (includes seats + protocol support)
+   
+   Note: Contact Sales Engineer for exact pricing and volume discounts
+   ================================================================================
+   ```
+
+### Usage Example
+
+When you request a Snappi script:
+
+```bash
+# Agent generates script AND reports licensing
+Agent output:
+1. ✅ Generated: test_bgp_convergence.py
+2. ✅ Licensing analyzed:
+   - Required: 2×10G KENG-SEAT + BGP licenses
+   - Recommended: Team Tier
+   - Est. Cost: ~$XXX/month
+
+Ready to run: python3 test_bgp_convergence.py --auto-start
+```
+
+### Benefits
+
+- **Plan ahead:** Know licensing requirements before running tests
+- **Budget visibility:** Understand costs for large test campaigns
+- **License optimization:** Get recommendations for your test profile
+- **No surprises:** Licensing details embedded in script generation workflow
+
+### Limitations & Disclaimers
+
+- Cost estimates are approximations (actual pricing may vary)
+- Contact Ixia/Keysight Sales Engineer for official quotes
+- Licensing requirements change with controller versions and feature updates
+- This is for reference only; not a binding quote

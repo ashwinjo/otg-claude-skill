@@ -1,0 +1,38 @@
+{
+  "deployment": "b2b-dataplane",
+  "method": "Docker Compose",
+  "controller": {
+    "name": "keng-controller",
+    "url": "https://localhost:8443",
+    "ports": ["8443 (HTTPS REST)", "40051 (gRPC)"]
+  },
+  "traffic_engines": [
+    {
+      "name": "ixia-c-te-a",
+      "listen_port": 5555,
+      "veth": "veth-a",
+      "location": "veth-a"
+    },
+    {
+      "name": "ixia-c-te-b",
+      "listen_port": 5556,
+      "veth": "veth-b",
+      "location": "veth-b"
+    }
+  ],
+  "veth_pair": {
+    "a": "veth-a",
+    "b": "veth-b",
+    "mtu": 1500
+  },
+  "controller_location_map": [
+    {
+      "location": "veth-a",
+      "endpoint": "localhost:5555"
+    },
+    {
+      "location": "veth-b",
+      "endpoint": "localhost:5556"
+    }
+  ]
+}

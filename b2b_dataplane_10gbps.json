@@ -1,0 +1,198 @@
+{
+  "ports": [
+    {
+      "name": "port1",
+      "location": "veth-a"
+    },
+    {
+      "name": "port2",
+      "location": "veth-z"
+    }
+  ],
+  "layer1": [
+    {
+      "name": "layer1_settings",
+      "port_names": ["port1", "port2"],
+      "speed": "speed_10_gbps",
+      "media": "fiber",
+      "auto_negotiate": false,
+      "mtu": 1500
+    }
+  ],
+  "flows": [
+    {
+      "name": "port1_to_port2",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port1",
+          "rx_names": ["port2"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": {
+              "choice": "value",
+              "value": "00:00:00:00:00:02"
+            },
+            "src": {
+              "choice": "value",
+              "value": "00:00:00:00:00:01"
+            },
+            "ether_type": {
+              "choice": "value",
+              "value": 2048
+            }
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {
+              "choice": "value",
+              "value": "192.168.1.1"
+            },
+            "dst": {
+              "choice": "value",
+              "value": "192.168.2.1"
+            },
+            "priority": {
+              "choice": "dscp",
+              "dscp": {
+                "phb": {
+                  "choice": "value",
+                  "value": 0
+                }
+              }
+            },
+            "time_to_live": {
+              "choice": "value",
+              "value": 64
+            },
+            "protocol": {
+              "choice": "value",
+              "value": 17
+            }
+          }
+        },
+        {
+          "choice": "udp",
+          "udp": {
+            "src_port": {
+              "choice": "value",
+              "value": 1234
+            },
+            "dst_port": {
+              "choice": "value",
+              "value": 5678
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 64
+      },
+      "rate": {
+        "choice": "percentage",
+        "percentage": 100
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true,
+        "timestamps": true
+      }
+    },
+    {
+      "name": "port2_to_port1",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port2",
+          "rx_names": ["port1"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": {
+              "choice": "value",
+              "value": "00:00:00:00:00:01"
+            },
+            "src": {
+              "choice": "value",
+              "value": "00:00:00:00:00:02"
+            },
+            "ether_type": {
+              "choice": "value",
+              "value": 2048
+            }
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {
+              "choice": "value",
+              "value": "192.168.2.1"
+            },
+            "dst": {
+              "choice": "value",
+              "value": "192.168.1.1"
+            },
+            "priority": {
+              "choice": "dscp",
+              "dscp": {
+                "phb": {
+                  "choice": "value",
+                  "value": 0
+                }
+              }
+            },
+            "time_to_live": {
+              "choice": "value",
+              "value": 64
+            },
+            "protocol": {
+              "choice": "value",
+              "value": 17
+            }
+          }
+        },
+        {
+          "choice": "udp",
+          "udp": {
+            "src_port": {
+              "choice": "value",
+              "value": 5678
+            },
+            "dst_port": {
+              "choice": "value",
+              "value": 1234
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 64
+      },
+      "rate": {
+        "choice": "percentage",
+        "percentage": 100
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true,
+        "timestamps": true
+      }
+    }
+  ]
+}

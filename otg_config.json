@@ -1,0 +1,68 @@
+{
+  "ports": [
+    {"name": "port_a", "location": "veth-a"},
+    {"name": "port_z", "location": "veth-z"}
+  ],
+  "flows": [
+    {
+      "name": "flow_a_to_z",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port_a",
+          "rx_names": ["port_z"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "src": {"choice": "value", "value": "00:00:01:00:00:01"},
+            "dst": {"choice": "value", "value": "00:00:01:00:00:02"}
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {"choice": "value", "value": "10.0.0.1"},
+            "dst": {"choice": "value", "value": "10.0.0.2"}
+          }
+        }
+      ],
+      "size": {"choice": "fixed", "fixed": 128},
+      "rate": {"choice": "pps", "pps": 1000},
+      "duration": {"choice": "continuous"},
+      "metrics": {"enable": true}
+    },
+    {
+      "name": "flow_z_to_a",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port_z",
+          "rx_names": ["port_a"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "src": {"choice": "value", "value": "00:00:01:00:00:02"},
+            "dst": {"choice": "value", "value": "00:00:01:00:00:01"}
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {"choice": "value", "value": "10.0.0.2"},
+            "dst": {"choice": "value", "value": "10.0.0.1"}
+          }
+        }
+      ],
+      "size": {"choice": "fixed", "fixed": 128},
+      "rate": {"choice": "pps", "pps": 1000},
+      "duration": {"choice": "continuous"},
+      "metrics": {"enable": true}
+    }
+  ]
+}

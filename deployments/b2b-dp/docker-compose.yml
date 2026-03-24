@@ -1,0 +1,67 @@
+# Ixia-c B2B Dataplane-Only Deployment
+#
+# Topology: DP (traffic-only, no protocol engines)
+# Network mode: --net=host (all containers share host network)
+# Ports: veth-a (te1, port 5555) <--> veth-z (te2, port 5556)
+#
+# Prerequisites:
+#   Run ./setup-veth.sh BEFORE starting this compose stack.
+#   (setup-veth.sh creates the veth pair, brings interfaces up,
+#    and injects the location_map into the controller.)
+#
+# Usage:
+#   ./setup-veth.sh          # one-time veth + location_map setup
+#   docker compose up -d     # start the stack
+#   docker compose down      # stop the stack
+#   ./teardown.sh            # full cleanup (containers + veth)
+
+services:
+
+  keng-controller:
+    image: ghcr.io/open-traffic-generator/keng-controller:latest
+    network_mode: host
+    restart: unless-stopped
+    command:
+      - --accept-eula
+      - --disable-app-usage-reporter
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8443"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - keng-controller-config:/home/ixia-c/controller/config
+
+  ixia-c-traffic-engine-veth-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    environment:
+      OPT_LISTEN_PORT: "5555"
+      ARG_IFACE_LIST: "virtual@af_packet,veth-a"
+      OPT_NO_HUGEPAGES: "Yes"
+      OPT_NO_PINNING: "Yes"
+      OPT_ADAPTIVE_CPU_USAGE: "Yes"
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+
+  ixia-c-traffic-engine-veth-z:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+    environment:
+      OPT_LISTEN_PORT: "5556"
+      ARG_IFACE_LIST: "virtual@af_packet,veth-z"
+      OPT_NO_HUGEPAGES: "Yes"
+      OPT_NO_PINNING: "Yes"
+      OPT_ADAPTIVE_CPU_USAGE: "Yes"
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+
+volumes:
+  keng-controller-config:

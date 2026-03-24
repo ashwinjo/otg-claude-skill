@@ -1,0 +1,59 @@
+---
+# Ixia-c B2B Dataplane Deployment — Docker Compose
+# Topology: DP-only (traffic-only, no protocol engines)
+# Network mode: host — all containers share the host network
+# Veth pair: veth-a <-> veth-z (created by setup-ixia-c-b2b.sh before compose up)
+#
+# Port locations for OTG config:
+#   te_a: "veth-a" (traffic engine A, listen port 5555)
+#   te_b: "veth-z" (traffic engine B, listen port 5556)
+#
+# Controller URL: https://localhost:8443
+# Controller location_map is injected by setup-ixia-c-b2b.sh after startup.
+
+services:
+
+  keng-controller:
+    image: ghcr.io/open-traffic-generator/keng-controller:latest
+    container_name: keng-controller
+    network_mode: host
+    command: --accept-eula --disable-app-usage-reporter
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8443"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  ixia-c-te-a:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-te-a
+    network_mode: host
+    privileged: true
+    environment:
+      OPT_LISTEN_PORT: "5555"
+      ARG_IFACE_LIST: "virtual@af_packet,veth-a"
+      OPT_NO_HUGEPAGES: "Yes"
+      OPT_NO_PINNING: "Yes"
+      OPT_ADAPTIVE_CPU_USAGE: "Yes"
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+    restart: unless-stopped
+
+  ixia-c-te-b:
+    image: ghcr.io/open-traffic-generator/ixia-c-traffic-engine:latest
+    container_name: ixia-c-te-b
+    network_mode: host
+    privileged: true
+    environment:
+      OPT_LISTEN_PORT: "5556"
+      ARG_IFACE_LIST: "virtual@af_packet,veth-z"
+      OPT_NO_HUGEPAGES: "Yes"
+      OPT_NO_PINNING: "Yes"
+      OPT_ADAPTIVE_CPU_USAGE: "Yes"
+    depends_on:
+      keng-controller:
+        condition: service_healthy
+    restart: unless-stopped

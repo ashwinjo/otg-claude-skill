@@ -91,3 +91,26 @@ New entries go at the bottom. Duplicate cross-cutting fixes here — skills are 
 // RIGHT for ixia-c-one
 "metrics": { "enable": true }
 ```
+
+---
+
+### [Config Validation] Flow Rate: Use 'pps' Not 'line' For Rate Choice
+**Wrong:** `"rate": { "choice": "line", "line": 100 }`
+**Right:** `"rate": { "choice": "pps", "pps": 14880952 }` (for 100% line rate with 64-byte frames)
+**Why:** OTG schema (v1.49.0) does not support `"line"` as a valid enum value for `Flow.rate.choice`. Valid choices are `"pps"`, `"percentage"`, `"bps"` only.
+
+**Calculation for 100% line rate:**
+- 64-byte frames = 78 bytes on wire (including Ethernet header, CRC, inter-frame gap)
+- 10 Gbps ÷ (78 bytes × 8 bits/byte) = ~14.88M pps
+- Adjust pps value based on frame size and desired link speed
+
+```json
+// WRONG — will be rejected with: invalid value for enum field choice: "line"
+{ "rate": { "choice": "line", "line": 100 } }
+
+// RIGHT — 64-byte frames at 100% line rate
+{ "rate": { "choice": "pps", "pps": 14880952 } }
+
+// RIGHT — percentage-based (simpler, no calculation needed)
+{ "rate": { "choice": "percentage", "percentage": 100 } }
+```

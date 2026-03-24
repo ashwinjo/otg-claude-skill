@@ -1,0 +1,127 @@
+{
+  "ports": [
+    {
+      "name": "port1",
+      "location": "veth-a"
+    },
+    {
+      "name": "port2",
+      "location": "veth-z"
+    }
+  ],
+  "layer1": [
+    {
+      "name": "layer1_settings",
+      "port_names": ["port1", "port2"],
+      "speed": "speed_10_gbps",
+      "auto_negotiate": false,
+      "ieee_media_defaults": false
+    }
+  ],
+  "flows": [
+    {
+      "name": "port1_to_port2",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port1",
+          "rx_names": ["port2"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": {
+              "choice": "value",
+              "value": "00:00:00:00:00:02"
+            },
+            "src": {
+              "choice": "value",
+              "value": "00:00:00:00:00:01"
+            }
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {
+              "choice": "value",
+              "value": "192.168.1.1"
+            },
+            "dst": {
+              "choice": "value",
+              "value": "192.168.2.1"
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 1500
+      },
+      "rate": {
+        "choice": "percentage",
+        "percentage": 100
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true
+      }
+    },
+    {
+      "name": "port2_to_port1",
+      "tx_rx": {
+        "choice": "port",
+        "port": {
+          "tx_name": "port2",
+          "rx_names": ["port1"]
+        }
+      },
+      "packet": [
+        {
+          "choice": "ethernet",
+          "ethernet": {
+            "dst": {
+              "choice": "value",
+              "value": "00:00:00:00:00:01"
+            },
+            "src": {
+              "choice": "value",
+              "value": "00:00:00:00:00:02"
+            }
+          }
+        },
+        {
+          "choice": "ipv4",
+          "ipv4": {
+            "src": {
+              "choice": "value",
+              "value": "192.168.2.1"
+            },
+            "dst": {
+              "choice": "value",
+              "value": "192.168.1.1"
+            }
+          }
+        }
+      ],
+      "size": {
+        "choice": "fixed",
+        "fixed": 1500
+      },
+      "rate": {
+        "choice": "percentage",
+        "percentage": 100
+      },
+      "duration": {
+        "choice": "continuous"
+      },
+      "metrics": {
+        "enable": true
+      }
+    }
+  ]
+}
