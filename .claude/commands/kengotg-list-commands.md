@@ -45,7 +45,7 @@ Complete reference to all available commands in the KENG OTG Traffic Testing Pip
 ---
 
 #### 🤖 `/kengotg-show-agents`
-**List all 4 intelligent subagents and their responsibilities.**
+**List all 5 intelligent subagents and their responsibilities.**
 
 - 4 agents: ixia-c-deployment-agent, otg-config-generator-agent, snappi-script-generator-agent, keng-licensing-agent
 - Role and responsibilities for each

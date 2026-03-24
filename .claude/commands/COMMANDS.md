@@ -45,7 +45,7 @@ Commands designed to help users explore, learn, and understand the plugin.
 ---
 
 #### `/kengotg-show-agents`
-**List all 4 intelligent subagents and their responsibilities.**
+**List all 5 intelligent subagents and their responsibilities.**
 
 - 4 agents with colored circles (🔵🟢🟣🟠)
 - Role and responsibilities for each

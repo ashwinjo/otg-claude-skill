@@ -143,7 +143,7 @@ claude --list-plugins
 ### 4. Test Agent Discovery
 ```bash
 /kengotg-show-agents
-# Should list: 4 intelligent subagents
+# Should list: 5 intelligent subagents
 ```
 
 ### 5. Verify Docker Integration (Optional)

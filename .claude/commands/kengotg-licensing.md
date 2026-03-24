@@ -1,6 +1,6 @@
 ---
 name: kengotg-licensing
-description: Quick KENG licensing check and cost estimation
+description: Quick KENG licensing check and cost estimation (dispatches to keng-licensing-agent)
 disable-model-invocation: false
 allowed-tools: []
 ---
@@ -8,6 +8,25 @@ allowed-tools: []
 # Licensing — Quick License Check & Cost Estimation
 
 Quickly determine which KENG/OTG license tier suits your needs and get cost estimates.
+
+## Agent Dispatch (REQUIRED)
+
+**This command MUST dispatch to the `keng-licensing-agent` subagent.**
+
+Do NOT execute the skill directly. Instead, use the Agent tool:
+
+```
+Agent tool call:
+  subagent_type: keng-licensing-agent
+  prompt: <forward the user's licensing question and any arguments>
+  description: "KENG licensing check"
+```
+
+The agent will invoke the `keng-licensing` skill internally, handle all licensing calculations, and return results.
+
+**Hierarchy:** `/kengotg-licensing` (command) → `keng-licensing-agent` (agent) → `keng-licensing` (skill)
+
+---
 
 ## Quick Start
 

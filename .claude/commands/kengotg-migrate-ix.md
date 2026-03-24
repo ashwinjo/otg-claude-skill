@@ -1,6 +1,6 @@
 ---
 name: kengotg-migrate-ix
-description: Quick IxNetwork migration to OTG/KENG format
+description: Quick IxNetwork migration to OTG/KENG format (dispatches to ixnetwork-to-keng-converter-agent)
 disable-model-invocation: false
 allowed-tools: []
 ---
@@ -8,6 +8,25 @@ allowed-tools: []
 # Migrate-Ix — Quick IxNetwork Migration
 
 Rapidly migrate IxNetwork test configurations to Open Traffic Generator (OTG/KENG) format.
+
+## Agent Dispatch (REQUIRED)
+
+**This command MUST dispatch to the `ixnetwork-to-keng-converter-agent` subagent.**
+
+Do NOT execute the skill directly. Instead, use the Agent tool:
+
+```
+Agent tool call:
+  subagent_type: ixnetwork-to-keng-converter-agent
+  prompt: <forward the user's migration request, IxNetwork config, and any arguments>
+  description: "Migrate IxNetwork to OTG"
+```
+
+The agent will invoke the `ixnetwork-to-keng-converter` skill internally, run feasibility analysis, and return the converted config + report.
+
+**Hierarchy:** `/kengotg-migrate-ix` (command) → `ixnetwork-to-keng-converter-agent` (agent) → `ixnetwork-to-keng-converter` (skill)
+
+---
 
 ## Quick Start
 

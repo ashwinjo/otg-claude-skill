@@ -139,7 +139,7 @@ This plugin provides 16 Claude Commands organized in 3 tiers for different user 
 Perfect for learning the plugin:
 - `/kengotg-keng-help` — Plugin overview & quick start
 - `/kengotg-show-skills` — See all 5 skills
-- `/kengotg-show-agents` — See all 4 intelligent agents
+- `/kengotg-show-agents` — See all 5 intelligent agents
 - `/kengotg-show-architecture` — Understand system design
 - `/kengotg-examples` — 8 real-world workflow examples
 - `/kengotg-skill-help` — Detailed skill documentation

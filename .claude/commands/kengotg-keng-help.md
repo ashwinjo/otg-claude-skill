@@ -261,7 +261,7 @@ cat .claude/agents/eval-sets/*.json
 
 **KENG OTG Traffic Testing Pipeline**
 - 5 production-ready skills
-- 4 intelligent subagents
+- 5 intelligent subagents
 - 20 evaluation questions
 - Complete orchestration framework
 - Docker & Containerlab support

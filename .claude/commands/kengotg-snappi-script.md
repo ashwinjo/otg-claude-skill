@@ -1,6 +1,6 @@
 ---
 name: kengotg-snappi-script
-description: Quick Snappi test script generation
+description: Quick Snappi test script generation (dispatches to snappi-script-generator-agent)
 disable-model-invocation: false
 allowed-tools: []
 ---
@@ -8,6 +8,25 @@ allowed-tools: []
 # Snappi-Script — Quick Script Generation
 
 Rapidly convert OTG configurations into executable, standalone Python Snappi test scripts.
+
+## Agent Dispatch (REQUIRED)
+
+**This command MUST dispatch to the `snappi-script-generator-agent` subagent.**
+
+Do NOT execute the skill directly. Instead, use the Agent tool:
+
+```
+Agent tool call:
+  subagent_type: snappi-script-generator-agent
+  prompt: <forward the user's script generation request and any arguments>
+  description: "Generate Snappi test script"
+```
+
+The agent will invoke the `snappi-script-generator` skill internally, handle all generation steps, and return results.
+
+**Hierarchy:** `/kengotg-snappi-script` (command) → `snappi-script-generator-agent` (agent) → `snappi-script-generator` (skill)
+
+---
 
 ## Quick Start
 

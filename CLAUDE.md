@@ -20,16 +20,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. **ixia-c-deployment** — Infrastructure provisioning (Docker, Containerlab)
 5. **keng-licensing** — Licensing recommendations & cost estimation
 
-**4 Intelligent Subagents:**
+**5 Intelligent Subagents:**
 1. 🔵 **ixia-c-deployment-agent** — Infrastructure provisioner
 2. 🟢 **otg-config-generator-agent** — Intent → config translator
 3. 🟣 **snappi-script-generator-agent** — Config → script executor
 4. 🟠 **keng-licensing-agent** — Licensing advisor
+5. 🔴 **ixnetwork-to-keng-converter-agent** — IxNetwork migration specialist
 
 **16 Claude Commands (3 sections):**
 - **Section C (Help & Discovery):** 7 commands — Onboarding, skill discovery, architecture overview
-- **Section A (Skill Shortcuts):** 5 commands — Quick wrappers around skills with sensible defaults
+- **Section A (Skill Shortcuts):** 5 commands — Dispatch to agents (command → agent → skill)
 - **Section B (Workflows):** 4 commands — End-to-end workflows orchestrating multiple agents
+
+### Command → Agent → Skill Hierarchy
+
+Section A commands **always dispatch to agents** (never invoke skills directly):
+
+```
+/kengotg-deploy-ixia    → ixia-c-deployment-agent          → ixia-c-deployment skill
+/kengotg-otg-gen        → otg-config-generator-agent       → otg-config-generator skill
+/kengotg-snappi-script  → snappi-script-generator-agent    → snappi-script-generator skill
+/kengotg-licensing      → keng-licensing-agent              → keng-licensing skill
+/kengotg-migrate-ix     → ixnetwork-to-keng-converter-agent → ixnetwork-to-keng-converter skill
+```
+
+**Why:** Agents provide context isolation, own their memory, and invoke skills with proper error handling. Commands are the user-facing entry point; agents are the execution layer; skills are the implementation.
 
 ---
 
@@ -53,6 +68,7 @@ Claude Code acts as an **orchestrator** that:
 - 🟢 **otg-config-generator-agent** — Intent → config translator
 - 🟣 **snappi-script-generator-agent** — Config → script executor
 - 🟠 **keng-licensing-agent** — Licensing advisor
+- 🔴 **ixnetwork-to-keng-converter-agent** — IxNetwork migration specialist
 
 ### Standard Workflows
 ```
@@ -126,12 +142,13 @@ kengotg/
     │   ├── kengotg-migrate-and-run.md  ← Migration + exec (Section B)
     │   └── kengotg-check-licensing.md  ← Licensing workflow (Section B)
     │
-    ├── agents/                         ← Subagent specifications
+    ├── agents/                         ← Subagent specifications (5 agents)
     │   ├── README.md                   ← Agents overview & workflows
     │   ├── ixia-c-deployment-agent.md
     │   ├── otg-config-generator-agent.md
     │   ├── snappi-script-generator-agent.md
     │   ├── keng-licensing-agent.md
+    │   ├── ixnetwork-to-keng-converter-agent.md
     │   └── eval-sets/                  ← Agent evaluation test cases
     │       ├── README.md
     │       ├── ixia-c-deployment-agent-eval.json      (5 questions)
@@ -193,18 +210,18 @@ Claude Commands (slash commands) provide quick access to plugin features without
 
 **Use when:** New user, need to understand plugin, need examples
 
-#### Section A: Skill Shortcuts (5 commands)
-**Purpose:** Quick wrappers around skills with sensible defaults
+#### Section A: Agent Shortcuts (5 commands)
+**Purpose:** Dispatch to agents with sensible defaults (command → agent → skill)
 
 ```
-/kengotg-otg-gen            — Quick OTG config generation
-/kengotg-snappi-script      — Quick Snappi script generation
-/kengotg-deploy-ixia        — Quick Ixia-c deployment
-/kengotg-licensing          — Quick licensing check
-/kengotg-migrate-ix         — Quick IxNetwork migration
+/kengotg-deploy-ixia        → ixia-c-deployment-agent
+/kengotg-otg-gen            → otg-config-generator-agent
+/kengotg-snappi-script      → snappi-script-generator-agent
+/kengotg-licensing          → keng-licensing-agent
+/kengotg-migrate-ix         → ixnetwork-to-keng-converter-agent
 ```
 
-**Use when:** Want quick invocation with defaults, not full customization
+**Use when:** Want quick invocation with defaults. Each command dispatches to its agent via the Agent tool.
 
 #### Section B: Workflow Commands (4 commands)
 **Purpose:** End-to-end orchestration across multiple agents
@@ -538,21 +555,22 @@ Memory lives in `.claude/memory/` — checked into git, portable across servers.
 
 | Component | Version | Status | Notes |
 |-----------|---------|--------|-------|
-| **Project** | 2.0 | Production-Ready | 5 skills, 4 agents, 16 commands, full plugin |
+| **Project** | 2.1 | Production-Ready | 5 skills, 5 agents, 16 commands, command→agent→skill hierarchy |
 | **Skills** (5) | 1.1 | ✅ Ready | All production-ready with eval tests |
 | ├─ ixnetwork-to-keng-converter | 1.0 | ✅ Ready | Feasibility analysis + conversion |
 | ├─ otg-config-generator | 1.0 | ✅ Ready | Natural language → OTG config |
 | ├─ snappi-script-generator | 1.1 | ✅ Ready | OTG config → executable script |
 | ├─ ixia-c-deployment | 1.0 | ✅ Ready | Docker Compose, Containerlab |
 | └─ keng-licensing | 1.0 | ✅ Ready | Cost calc + recommendations |
-| **Subagents** (4) | 1.0 | ✅ Ready | 20 evaluation questions |
+| **Subagents** (5) | 1.1 | ✅ Ready | 20+ evaluation questions |
 | ├─ ixia-c-deployment-agent | 1.0 | ✅ Ready | Infrastructure provisioner |
 | ├─ otg-config-generator-agent | 1.0 | ✅ Ready | Intent → config translator |
 | ├─ snappi-script-generator-agent | 1.0 | ✅ Ready | Config → script executor |
-| └─ keng-licensing-agent | 1.0 | ✅ Ready | Licensing advisor |
-| **Commands** (16) | 1.0 | ✅ Ready | 150KB documentation, 3 tiers |
+| ├─ keng-licensing-agent | 1.0 | ✅ Ready | Licensing advisor |
+| └─ ixnetwork-to-keng-converter-agent | 1.0 | ✅ Ready | IxNetwork migration specialist |
+| **Commands** (16) | 1.1 | ✅ Ready | 150KB docs, 3 tiers, Section A dispatches to agents |
 | ├─ Section C (Help) | 1.0 | ✅ Ready | 7 discovery commands |
-| ├─ Section A (Shortcuts) | 1.0 | ✅ Ready | 5 quick-access commands |
+| ├─ Section A (Shortcuts) | 1.1 | ✅ Ready | 5 commands → 5 agents (command→agent→skill) |
 | └─ Section B (Workflows) | 1.0 | ✅ Ready | 4 end-to-end commands |
 | **Orchestration** | 1.0 | ✅ Ready | 6 use cases, parallel dispatch |
 | **Artifacts Library** | 1.0 | ✅ Ready | deployment/ + snappi-scripts/ with INDEX.md catalogs |

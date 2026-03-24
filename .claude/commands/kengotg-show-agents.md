@@ -1,13 +1,27 @@
 ---
 name: kengotg-show-agents
-description: List all 4 intelligent subagents and their responsibilities
+description: List all 5 intelligent subagents and their responsibilities
 disable-model-invocation: false
 allowed-tools: []
 ---
 
 # Show Agents
 
-Display all 4 intelligent subagents orchestrated by the KENG OTG Pipeline.
+Display all 5 intelligent subagents orchestrated by the KENG OTG Pipeline.
+
+## Command → Agent → Skill Hierarchy
+
+All Section A slash commands dispatch to agents (never invoke skills directly):
+
+```
+/kengotg-deploy-ixia    → ixia-c-deployment-agent          → ixia-c-deployment skill
+/kengotg-otg-gen        → otg-config-generator-agent       → otg-config-generator skill
+/kengotg-snappi-script  → snappi-script-generator-agent    → snappi-script-generator skill
+/kengotg-licensing      → keng-licensing-agent              → keng-licensing skill
+/kengotg-migrate-ix     → ixnetwork-to-keng-converter-agent → ixnetwork-to-keng-converter skill
+```
+
+---
 
 ## Available Agents
 
@@ -114,6 +128,33 @@ Display all 4 intelligent subagents orchestrated by the KENG OTG Pipeline.
 
 ---
 
+### 🔴 **ixnetwork-to-keng-converter-agent**
+**Role:** IxNetwork migration specialist
+
+**Responsibilities:**
+- Detect input format (RestPy Python code or IxNetwork JSON)
+- Run feasibility analysis (% convertible, blockers vs workarounds)
+- Convert supported features to OTG-compliant JSON config
+- Generate detailed conversion report
+- Suggest workarounds for unsupported features
+- Recommend next steps (enhance with otg-config-generator, generate script)
+
+**Invoke:**
+```
+@ixnetwork-to-keng-converter-agent Convert this IxNetwork BGP config to OTG format
+```
+
+**Success Criteria:**
+- Feasibility score accurately reflects convertibility
+- Supported features correctly mapped to OTG schema
+- Unsupported features clearly listed with severity
+- Conversion report is actionable
+
+**Related Skill:** `/ixnetwork-to-keng-converter`
+**Slash Command:** `/kengotg-migrate-ix`
+
+---
+
 ## Orchestration Patterns
 
 ### Sequential (Greenfield Test)
@@ -168,7 +209,7 @@ cat .claude/agents/eval-sets/snappi-script-generator-agent-eval.json
 cat .claude/agents/eval-sets/keng-licensing-agent-eval.json
 ```
 
-Total: **20 evaluation questions** (5 per agent)
+Total: **20+ evaluation questions** (5 per agent, 5 agents)
 
 ---
 
@@ -189,6 +230,12 @@ User says: "What license for 4×100GE + 8 BGP?"
 
 User says: "Full test setup + license cost"
 → 🔵 + 🟠 (parallel) → 🟢 → 🟣
+
+User says: "Convert my IxNetwork config to OTG"
+→ 🔴 only
+
+User says: "Migrate IxNetwork config and run it"
+→ 🔴 → 🟢 → 🟣 (sequential)
 ```
 
 ---

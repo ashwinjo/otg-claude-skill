@@ -1,6 +1,6 @@
 ---
 name: kengotg-otg-gen
-description: Quick OTG config generation from natural language
+description: Quick OTG config generation from natural language (dispatches to otg-config-generator-agent)
 disable-model-invocation: false
 allowed-tools: []
 ---
@@ -8,6 +8,25 @@ allowed-tools: []
 # OTG-Gen — Quick Config Generation
 
 Rapidly generate Open Traffic Generator configurations from plain English descriptions.
+
+## Agent Dispatch (REQUIRED)
+
+**This command MUST dispatch to the `otg-config-generator-agent` subagent.**
+
+Do NOT execute the skill directly. Instead, use the Agent tool:
+
+```
+Agent tool call:
+  subagent_type: otg-config-generator-agent
+  prompt: <forward the user's config generation request and any arguments>
+  description: "Generate OTG configuration"
+```
+
+The agent will invoke the `otg-config-generator` skill internally, handle all generation steps, and return results.
+
+**Hierarchy:** `/kengotg-otg-gen` (command) → `otg-config-generator-agent` (agent) → `otg-config-generator` (skill)
+
+---
 
 ## Quick Start
 

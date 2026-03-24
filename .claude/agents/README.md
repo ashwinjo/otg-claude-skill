@@ -56,6 +56,38 @@ Output: Licensing tier recommendation + cost breakdown + SE disclaimer
 
 ---
 
+### 5. 🔴 **ixnetwork-to-keng-converter-agent** (`ixnetwork-to-keng-converter-agent.md`)
+**Role:** IxNetwork Migration Specialist
+**Input:** IxNetwork RestPy code, JSON config, or high-level description
+**Output:** Feasibility report + converted OTG JSON config + conversion report
+**Use when:** You need to migrate existing IxNetwork tests to OTG/KENG format
+
+```
+Example: "Convert this IxNetwork BGP config to OTG format"
+Output: conversion_report.md + converted_config.json (OTG-compliant)
+```
+
+---
+
+## Command → Agent → Skill Hierarchy
+
+All Section A slash commands dispatch to agents, which in turn invoke skills:
+
+```
+/kengotg-deploy-ixia    → ixia-c-deployment-agent          → ixia-c-deployment skill
+/kengotg-otg-gen        → otg-config-generator-agent       → otg-config-generator skill
+/kengotg-snappi-script  → snappi-script-generator-agent    → snappi-script-generator skill
+/kengotg-licensing      → keng-licensing-agent              → keng-licensing skill
+/kengotg-migrate-ix     → ixnetwork-to-keng-converter-agent → ixnetwork-to-keng-converter skill
+```
+
+**Why this hierarchy?**
+- **Commands** provide user-friendly entry points with defaults and examples
+- **Agents** run in isolated context, manage their own memory, and invoke skills
+- **Skills** contain the technical implementation and reference material
+
+---
+
 ## Sequential Workflow (Use Case 1: Full Pipeline)
 
 ```
@@ -123,7 +155,7 @@ User Intent
 | **Model** | Sonnet (high quality, handles complex tasks) |
 | **Permissions** | `acceptAll` (agents can create/edit files) |
 | **Tools** | Bash, Read, Write, Edit, Glob, Grep, Task, WebFetch, WebSearch |
-| **Skills** | Each agent wraps a corresponding skill (ixia-c-deployment, otg-config-generator, snappi-script-generator, keng-licensing) |
+| **Skills** | Each agent wraps a corresponding skill (ixia-c-deployment, otg-config-generator, snappi-script-generator, keng-licensing, ixnetwork-to-keng-converter) |
 | **Max Turns** | 10 (allow for iterative refinement) |
 
 ---
@@ -170,5 +202,6 @@ User Intent
 
 - **Created:** 2026-03-19
 - **Status:** Initial spec complete ✅
-- **Skills integrated:** ✅ ixia-c-deployment, otg-config-generator, snappi-script-generator, keng-licensing
+- **Skills integrated:** ✅ ixia-c-deployment, otg-config-generator, snappi-script-generator, keng-licensing, ixnetwork-to-keng-converter
+- **Agents:** 5 (was 4 — added ixnetwork-to-keng-converter-agent)
 - **Ready for:** Production use, orchestration patterns

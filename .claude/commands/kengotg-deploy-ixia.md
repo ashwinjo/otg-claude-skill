@@ -1,6 +1,6 @@
 ---
 name: kengotg-deploy-ixia
-description: Quick Ixia-c deployment
+description: Quick Ixia-c deployment (dispatches to ixia-c-deployment-agent)
 disable-model-invocation: false
 allowed-tools: []
 ---
@@ -8,6 +8,25 @@ allowed-tools: []
 # Deploy-Ixia — Quick Infrastructure Deployment
 
 Rapidly deploy Ixia-c (containerized traffic generator) for your test environment.
+
+## Agent Dispatch (REQUIRED)
+
+**This command MUST dispatch to the `ixia-c-deployment-agent` subagent.**
+
+Do NOT execute the skill directly. Instead, use the Agent tool:
+
+```
+Agent tool call:
+  subagent_type: ixia-c-deployment-agent
+  prompt: <forward the user's deployment request and any arguments>
+  description: "Deploy Ixia-c infrastructure"
+```
+
+The agent will invoke the `ixia-c-deployment` skill internally, handle all deployment steps, and return results.
+
+**Hierarchy:** `/kengotg-deploy-ixia` (command) → `ixia-c-deployment-agent` (agent) → `ixia-c-deployment` (skill)
+
+---
 
 ## Quick Start
 
